@@ -1,0 +1,6 @@
+---
+pid: 29940
+cwd: |
+  C:\Users\enzoc
+---
+PS C:\Users\enzoc> 

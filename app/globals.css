@@ -1,0 +1,176 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Base ─────────────────────────────────────────── */
+:root {
+  color-scheme: light;
+  --glow: 59 130 246;
+}
+
+.dark {
+  color-scheme: dark;
+  --glow: 96 165 250;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-slate-50 text-slate-900 dark:bg-[#070d1f] dark:text-slate-100;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── Smooth dark/light transition (activée uniquement au clic) ── */
+.theme-transitioning *,
+.theme-transitioning *::before,
+.theme-transitioning *::after {
+  transition:
+    color 0.35s ease,
+    background-color 0.45s ease,
+    border-color 0.35s ease,
+    fill 0.35s ease,
+    box-shadow 0.35s ease !important;
+}
+
+/* ─── Card ──────────────────────────────────────────── */
+.card {
+  @apply rounded-2xl border border-slate-200 bg-white p-5 shadow-sm
+         dark:border-slate-700/60 dark:bg-slate-900/90;
+}
+
+/* ─── Glow border on hover ──────────────────────────── */
+.card-glow {
+  position: relative;
+  transition: box-shadow 0.25s ease, transform 0.2s ease;
+}
+.card-glow:hover {
+  box-shadow: 0 0 0 1px rgba(var(--glow), 0.35), 0 8px 28px rgba(var(--glow), 0.10);
+  transform: translateY(-2px);
+}
+
+/* ─── Page enter (re-monté à chaque navigation) ─────── */
+@keyframes pageEnter {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+.animate-page-enter {
+  animation: pageEnter 0.38s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ─── FadeUp (stagger) ───────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+.animate-fade-up   { animation: fadeUp 0.4s cubic-bezier(0.16,1,0.3,1) both; }
+.animate-fade-up-1 { animation: fadeUp 0.4s cubic-bezier(0.16,1,0.3,1) 0.05s both; }
+.animate-fade-up-2 { animation: fadeUp 0.4s cubic-bezier(0.16,1,0.3,1) 0.12s both; }
+.animate-fade-up-3 { animation: fadeUp 0.4s cubic-bezier(0.16,1,0.3,1) 0.19s both; }
+.animate-fade-up-4 { animation: fadeUp 0.4s cubic-bezier(0.16,1,0.3,1) 0.26s both; }
+
+/* ─── Scale in ───────────────────────────────────────── */
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1);    }
+}
+.animate-scale-in { animation: scaleIn 0.35s cubic-bezier(0.16,1,0.3,1) both; }
+
+/* ─── Shake ───────────────────────────────────────────── */
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20%     { transform: translateX(-8px); }
+  40%     { transform: translateX(7px); }
+  60%     { transform: translateX(-5px); }
+  80%     { transform: translateX(4px); }
+}
+.animate-shake { animation: shake 0.4s ease; }
+
+/* ─── Pop ─────────────────────────────────────────────── */
+@keyframes pop {
+  0%  { transform: scale(1);    }
+  40% { transform: scale(1.07); }
+  100%{ transform: scale(1);    }
+}
+.animate-pop { animation: pop 0.28s cubic-bezier(0.16,1,0.3,1); }
+
+/* ─── Float (orbs hero) ───────────────────────────────── */
+@keyframes floatSlow {
+  0%,100% { transform: translateY(0)    scale(1);    }
+  50%     { transform: translateY(-20px) scale(1.03); }
+}
+@keyframes floatMid {
+  0%,100% { transform: translateY(0)   scale(1);    }
+  50%     { transform: translateY(16px) scale(0.97); }
+}
+.animate-float-slow { animation: floatSlow 8s ease-in-out infinite; }
+.animate-float-mid  { animation: floatMid  5.5s ease-in-out infinite; }
+
+/* ─── Pulse glow ─────────────────────────────────────── */
+@keyframes pulseGlow {
+  0%,100% { opacity: 0.3; }
+  50%     { opacity: 0.6; }
+}
+.animate-pulse-glow { animation: pulseGlow 3.5s ease-in-out infinite; }
+
+/* ─── Stars ───────────────────────────────────────────── */
+@keyframes twinkle {
+  0%,100% { opacity: 1;    transform: scale(1);   }
+  50%     { opacity: 0.12; transform: scale(0.45); }
+}
+@keyframes sparkleAnim {
+  0%,100% { opacity: 1;   transform: scale(1)   rotate(0deg);  }
+  30%     { opacity: 0.7; transform: scale(1.35) rotate(45deg); }
+  65%     { opacity: 0.2; transform: scale(0.6)  rotate(-20deg);}
+}
+@keyframes starFloat {
+  0%,100% { transform: translateY(0); }
+  50%     { transform: translateY(-8px); }
+}
+
+/* ─── Shimmer (CTA button) ─────────────────────────── */
+@keyframes shimmer {
+  from { background-position: -200% center; }
+  to   { background-position: 200% center;  }
+}
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255,255,255,0.18) 50%,
+    transparent 100%
+  );
+  background-size: 200% auto;
+  animation: shimmer 2.5s linear infinite;
+}
+
+/* ─── Gradient text ──────────────────────────────────── */
+.gradient-text {
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #06b6d4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─── Progress bar ───────────────────────────────────── */
+.progress-bar {
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ─── Scrollbar ──────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(148,163,184,0.35);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(100,116,139,0.55); }
+
+/* ─── Focus ──────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid rgb(59,130,246);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
