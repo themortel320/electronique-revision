@@ -47,9 +47,19 @@ export function ExerciseGenerator() {
 
   const check = () => {
     if (!exercise) return;
-    const userAnswer = Number(answer);
+    // Accepter la virgule comme séparateur décimal (usage français)
+    const cleaned = answer.trim().replace(",", ".");
+    if (!cleaned) return;
+    const userAnswer = Number(cleaned);
+    if (!Number.isFinite(userAnswer)) {
+      setFeedback("wrong");
+      setShowSteps(true);
+      return;
+    }
     const delta = Math.abs(userAnswer - exercise.expected);
-    const ok = Number.isFinite(userAnswer) && delta <= Math.max(0.5, exercise.expected * 0.04);
+    // Tolérance : 5% de la valeur attendue, minimum 0.01 (jamais 0.5 qui serait trop laxiste)
+    const tolerance = Math.max(0.01, Math.abs(exercise.expected) * 0.05);
+    const ok = delta <= tolerance;
     setFeedback(ok ? "correct" : "wrong");
     saveResult({
       id: exercise.id,

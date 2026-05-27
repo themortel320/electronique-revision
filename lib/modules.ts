@@ -3,6 +3,7 @@ import { CourseModule } from "@/types";
 export const courseModules: CourseModule[] = [
   {
     id: "foundations",
+    subject: "electronics" as const,
     title: "Lois fondamentales",
     summary: "Loi d'Ohm, puissance électrique, Kirchhoff et résistances en série/parallèle.",
     notions: [
@@ -76,6 +77,7 @@ export const courseModules: CourseModule[] = [
 
   {
     id: "passive",
+    subject: "electronics" as const,
     title: "Composants passifs",
     summary: "Condensateurs (charge/décharge, τ = RC) et bobines (inductance).",
     notions: [
@@ -139,6 +141,7 @@ export const courseModules: CourseModule[] = [
 
   {
     id: "diodes",
+    subject: "electronics" as const,
     title: "Diodes",
     summary: "Diode classique, Zener (régulation) et LED avec résistance de protection.",
     notions: [
@@ -192,6 +195,7 @@ export const courseModules: CourseModule[] = [
 
   {
     id: "transistors",
+    subject: "electronics" as const,
     title: "Transistors BJT",
     summary: "NPN/PNP, modes bloqué/actif/saturé, commutation et amplification.",
     notions: [
@@ -252,6 +256,7 @@ export const courseModules: CourseModule[] = [
 
   {
     id: "kirchhoff",
+    subject: "electronics" as const,
     title: "Lois de Kirchhoff",
     summary: "Analyser n'importe quel circuit complexe avec les lois des nœuds et des mailles.",
     notions: [
@@ -306,6 +311,7 @@ export const courseModules: CourseModule[] = [
 
   {
     id: "rc-filters",
+    subject: "electronics" as const,
     title: "Filtres RC",
     summary: "Passe-bas et passe-haut : fréquence de coupure, comportement en fréquence, applications.",
     notions: [

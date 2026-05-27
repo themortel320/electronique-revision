@@ -7,7 +7,9 @@ import { useEffect, useState } from "react";
 import { getPseudo } from "@/lib/user";
 
 const links = [
+  { href: "/study",       label: "📅 Plan"     },
   { href: "/modules",     label: "Cours"       },
+  { href: "/math",        label: "∂ Maths"     },
   { href: "/exercises",   label: "Exercices"   },
   { href: "/quiz",        label: "Quiz"        },
   { href: "/progress",    label: "Progression" },
