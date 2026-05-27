@@ -3,6 +3,7 @@ import "./globals.css";
 import { Navbar } from "@/components/navbar";
 import { AppShell } from "@/components/app-shell";
 import { StarField } from "@/components/star-field";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {
   title: "ElectroLab — Révision Électronique",
@@ -25,6 +26,7 @@ export default function RootLayout({
             <main className="mx-auto max-w-5xl px-4 py-8">{children}</main>
           </AppShell>
         </div>
+        <SpeedInsights />
       </body>
     </html>
   );
