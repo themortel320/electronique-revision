@@ -95,7 +95,7 @@ html:not(.dark) .rounded-2xl {
    CARD
    ═══════════════════════════════════════════════════════ */
 .card {
-  @apply rounded-2xl border border-white/8 bg-[#0d0d1f] p-5;
+  @apply rounded-2xl border border-white/10 bg-[#0d0d1f] p-5;
 }
 html:not(.dark) .card {
   @apply border-violet-200/50 bg-white shadow-sm shadow-violet-100;
