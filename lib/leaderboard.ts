@@ -36,12 +36,12 @@ function saveLocal(entry: LeaderboardEntry) {
 
 // ─── API (global shared) ──────────────────────────────────────────────────────
 
-export async function fetchLeaderboard(): Promise<{ entries: LeaderboardEntry[]; shared: boolean }> {
+export async function fetchLeaderboard(): Promise<{ entries: LeaderboardEntry[]; shared: boolean; resetDate?: string }> {
   try {
-    const res = await fetch("/api/leaderboard", { next: { revalidate: 30 } });
+    const res = await fetch("/api/leaderboard");
     const data = await res.json();
-    if (data.source === "redis" && data.entries.length > 0) {
-      return { entries: data.entries as LeaderboardEntry[], shared: true };
+    if (data.source === "redis") {
+      return { entries: data.entries as LeaderboardEntry[], shared: true, resetDate: data.resetDate };
     }
   } catch {
     // network error → fall back to local

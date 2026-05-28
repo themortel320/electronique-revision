@@ -2,7 +2,7 @@
 
 import { fetchLeaderboard, LeaderboardEntry } from "@/lib/leaderboard";
 import { getPseudo } from "@/lib/user";
-import { Trophy, Globe, HardDrive, RefreshCw } from "lucide-react";
+import { Trophy, Globe, HardDrive, RefreshCw, Clock } from "lucide-react";
 import { useEffect, useState } from "react";
 import { QUIZ_CATEGORIES } from "@/lib/quiz-questions";
 
@@ -30,17 +30,36 @@ export function Leaderboard() {
   const [shared, setShared] = useState(false);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("all");
+  const [resetDate, setResetDate] = useState<string | null>(null);
+  const [countdown, setCountdown] = useState("");
 
   async function load() {
     setLoading(true);
-    const { entries, shared: s } = await fetchLeaderboard();
+    const { entries, shared: s, resetDate: rd } = await fetchLeaderboard();
     setBoard(entries);
     setShared(s);
     setMe(getPseudo());
+    if (rd) setResetDate(rd);
     setLoading(false);
   }
 
   useEffect(() => { load(); }, []);
+
+  // Countdown timer
+  useEffect(() => {
+    if (!resetDate) return;
+    const tick = () => {
+      const diff = new Date(resetDate).getTime() - Date.now();
+      if (diff <= 0) { setCountdown("Reset imminent"); return; }
+      const d = Math.floor(diff / 86400000);
+      const h = Math.floor((diff % 86400000) / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      setCountdown(d > 0 ? `${d}j ${h}h ${m}m` : `${h}h ${m}m`);
+    };
+    tick();
+    const id = setInterval(tick, 60000);
+    return () => clearInterval(id);
+  }, [resetDate]);
 
   const categories = ["all", ...QUIZ_CATEGORIES.map((c) => c.id)];
 
@@ -74,6 +93,14 @@ export function Leaderboard() {
           <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
         </button>
       </div>
+
+      {/* Reset timer */}
+      {shared && countdown && (
+        <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/8 text-xs text-white/40">
+          <Clock size={12} className="text-white/30" />
+          <span>Classement de la semaine · reset dans <span className="text-white/60 font-medium">{countdown}</span></span>
+        </div>
+      )}
 
       {!shared && (
         <div className="p-3 rounded-xl bg-amber-900/20 border border-amber-700/30 text-amber-300 text-xs">

@@ -5,12 +5,22 @@ export type QuizQuestion = {
   explanation: string;
 };
 
+export type FormulaRow = {
+  formula: string;
+  label: string;
+  note?: string;
+};
+
 export type QuizCategory = {
   id: string;
   label: string;
   emoji: string;
   color: string;
   questions: QuizQuestion[];
+  cheatSheet?: {
+    title: string;
+    rows: FormulaRow[];
+  };
 };
 
 export const QUIZ_CATEGORIES: QuizCategory[] = [
@@ -19,6 +29,19 @@ export const QUIZ_CATEGORIES: QuizCategory[] = [
     label: "Électronique",
     emoji: "⚡",
     color: "from-violet-600 to-blue-600",
+    cheatSheet: {
+      title: "Formules essentielles",
+      rows: [
+        { formula: "U = R × I", label: "Loi d'Ohm", note: "U en V, R en Ω, I en A" },
+        { formula: "P = U × I", label: "Puissance", note: "aussi P = R×I² ou U²/R" },
+        { formula: "Req = R1 + R2", label: "Résistances série", note: "courant identique" },
+        { formula: "1/Req = 1/R1 + 1/R2", label: "Résistances parallèle", note: "tension identique" },
+        { formula: "Vout = Vin × R2/(R1+R2)", label: "Diviseur de tension", note: "R2 côté GND" },
+        { formula: "τ = R × C", label: "Constante de temps RC", note: "63% à t=τ, 99% à t=5τ" },
+        { formula: "R_LED = (Vcc − Vf) / I", label: "Résistance LED", note: "Vf ≈ 2V rouge, 3.2V bleu" },
+        { formula: "Ic = β × Ib", label: "Transistor BJT", note: "β = gain (50–500)" },
+      ],
+    },
     questions: [
       {
         q: "Quelle est la loi d'Ohm ?",
@@ -93,6 +116,19 @@ export const QUIZ_CATEGORIES: QuizCategory[] = [
     label: "Maintenance",
     emoji: "🔧",
     color: "from-orange-600 to-red-600",
+    cheatSheet: {
+      title: "Aide-mémoire maintenance",
+      rows: [
+        { formula: "Voltmètre → parallèle", label: "Mesure de tension", note: "impédance ~10 MΩ" },
+        { formula: "Ampèremètre → série", label: "Mesure de courant", note: "circuit ouvert avant branchement" },
+        { formula: "T = 1 / f", label: "Période / Fréquence", note: "T en s, f en Hz" },
+        { formula: "Ueff = Umax / √2", label: "Tension efficace (AC)", note: "≈ Umax × 0.707" },
+        { formula: "5 règles sécurité", label: "Travaux hors tension", note: "Séparer · Condamner · VAT · Terre · Baliser" },
+        { formula: "IP XY", label: "Indice de Protection", note: "X=solides (0-6), Y=liquides (0-9)" },
+        { formula: "B1 → hors tension BT", label: "Habilitations", note: "B2=chargé, BR=dépannage, BC=consignation" },
+        { formula: "Soudure bonne → brillante", label: "Qualité soudure", note: "Terne/grumeleuse = froide (mauvaise)" },
+      ],
+    },
     questions: [
       {
         q: "En mode voltmètre, le multimètre se branche…",
@@ -182,6 +218,19 @@ export const QUIZ_CATEGORIES: QuizCategory[] = [
     label: "Fabrication",
     emoji: "🏭",
     color: "from-green-600 to-teal-600",
+    cheatSheet: {
+      title: "Aide-mémoire fabrication",
+      rows: [
+        { formula: "PCB = Printed Circuit Board", label: "Circuit imprimé", note: "substrat FR4 standard" },
+        { formula: "THT → patte dans trou", label: "Through Hole", note: "robuste, facile à souder" },
+        { formula: "CMS / SMD → surface", label: "Surface Mount", note: "plus petit, automatisable" },
+        { formula: "Reflow → four ~245°C", label: "Assemblage CMS", note: "pâte à braser + four" },
+        { formula: "Via → trou métallisé", label: "Connexion inter-couches", note: "traversant/borgne/enterré" },
+        { formula: "Gerber → fichiers FAB", label: "Fabrication PCB", note: "GTL/GBL + DRL + GTS/GBS" },
+        { formula: "IPC-610 Classe 1/2/3", label: "Contrôle qualité", note: "1=grand public, 3=critique" },
+        { formula: "Abs. Max Ratings → LIMITE", label: "Datasheet", note: "ne jamais dépasser" },
+      ],
+    },
     questions: [
       {
         q: "Que signifie PCB ?",
@@ -286,6 +335,22 @@ export const QUIZ_CATEGORIES: QuizCategory[] = [
     label: "Mathématiques",
     emoji: "∂",
     color: "from-blue-600 to-cyan-600",
+    cheatSheet: {
+      title: "Table de dérivation",
+      rows: [
+        { formula: "(xⁿ)' = n·xⁿ⁻¹", label: "Puissance", note: "ex: (x³)' = 3x²" },
+        { formula: "(eˣ)' = eˣ", label: "Exponentielle", note: "elle est sa propre dérivée" },
+        { formula: "(ln x)' = 1/x", label: "Logarithme", note: "x > 0" },
+        { formula: "(sin x)' = cos x", label: "Sinus", note: "sin→cos→−sin→−cos→sin" },
+        { formula: "(cos x)' = −sin x", label: "Cosinus" },
+        { formula: "(u+v)' = u'+v'", label: "Somme", note: "linéarité" },
+        { formula: "(u·v)' = u'v + uv'", label: "Produit", note: "prime×second + premier×prime du second" },
+        { formula: "(u/v)' = (u'v − uv') / v²", label: "Quotient", note: "v ≠ 0" },
+        { formula: "(f∘g)' = f'(g)·g'", label: "Composée", note: "dériver l'extérieur × dériver l'intérieur" },
+        { formula: "∫xⁿ dx = xⁿ⁺¹/(n+1) + C", label: "Primitive puissance", note: "n ≠ −1" },
+        { formula: "sin²x + cos²x = 1", label: "Identité trigo fondamentale" },
+      ],
+    },
     questions: [
       {
         q: "La dérivée de f(x) = x³ est…",
@@ -355,6 +420,19 @@ export const QUIZ_CATEGORIES: QuizCategory[] = [
     label: "Défi mixte",
     emoji: "🎯",
     color: "from-pink-600 to-purple-600",
+    cheatSheet: {
+      title: "Rappels essentiels",
+      rows: [
+        { formula: "U = R × I", label: "Loi d'Ohm" },
+        { formula: "P = U × I", label: "Puissance" },
+        { formula: "(xⁿ)' = n·xⁿ⁻¹", label: "Dérivée puissance" },
+        { formula: "(sin x)' = cos x", label: "Dérivée sin" },
+        { formula: "τ = R × C", label: "Constante de temps RC" },
+        { formula: "Voltmètre → parallèle", label: "Mesure tension" },
+        { formula: "Via → trou métallisé", label: "PCB inter-couches" },
+        { formula: "IP XY → protection", label: "Indice de protection" },
+      ],
+    },
     questions: [],
   },
 ];
