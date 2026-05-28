@@ -115,14 +115,30 @@ export function QuestionCard({ defaultChapter, onAskTutor }: QuestionCardProps) 
 
     if (question.type === "qcm") {
       correct = selectedChoice === question.reponse_index;
-    } else if (question.type === "calcul" && question.expected_number !== undefined) {
-      const num = parseFloat(userAnswer.trim().replace(",", "."));
-      const tol = Math.max(0.01, Math.abs(question.expected_number) * 0.05);
-      correct = Number.isFinite(num) && Math.abs(num - question.expected_number) <= tol;
+    } else if (question.type === "calcul") {
+      if (question.expected_number !== undefined) {
+        const num = parseFloat(userAnswer.trim().replace(",", ".").replace(/\s/g, ""));
+        // Tolérance de 10% ou au moins 0.5 pour les petits nombres
+        const tol = Math.max(0.5, Math.abs(question.expected_number) * 0.10);
+        correct = Number.isFinite(num) && Math.abs(num - question.expected_number) <= tol;
+      } else if (question.reponse_texte) {
+        // Comparaison souple : ignore casse, espaces, et caractères spéciaux simples
+        const normalize = (s: string) => s.toLowerCase().trim().replace(/\s+/g, " ");
+        correct = normalize(userAnswer) === normalize(question.reponse_texte);
+      }
     } else if (question.type === "vrai_faux") {
       correct = userAnswer.toLowerCase() === (question.reponse_texte ?? "").toLowerCase();
     } else {
-      correct = userAnswer.trim().toLowerCase() === (question.reponse_texte ?? "").toLowerCase();
+      // trouver_erreur : comparaison souple (mots-clés)
+      if (question.reponse_texte) {
+        const normalize = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9àâéèêëîïôùûü\s]/g, "").replace(/\s+/g, " ");
+        const userNorm = normalize(userAnswer);
+        const expectedNorm = normalize(question.reponse_texte);
+        // Correct si l'utilisateur contient les mots-clés principaux de la réponse
+        const keywords = expectedNorm.split(" ").filter(w => w.length > 3);
+        const matchCount = keywords.filter(k => userNorm.includes(k)).length;
+        correct = userNorm === expectedNorm || (keywords.length > 0 && matchCount >= Math.ceil(keywords.length * 0.6));
+      }
     }
 
     setFeedback(correct ? "correct" : "wrong");
@@ -363,11 +379,25 @@ export function QuestionCard({ defaultChapter, onAskTutor }: QuestionCardProps) 
 
           {/* Feedback */}
           {feedback && (
-            <div className={`flex items-center gap-2 text-sm font-medium ${feedback === "correct" ? "text-emerald-400" : "text-red-400"}`}>
-              {feedback === "correct" ? (
-                <><CheckCircle2 size={18} /> Excellent ! {streak.current >= 3 && `🔥 ${streak.current} d'affilée !`}</>
-              ) : (
-                <><XCircle size={18} /> Raté !</>
+            <div className="space-y-2">
+              <div className={`flex items-center gap-2 text-sm font-medium ${feedback === "correct" ? "text-emerald-400" : "text-red-400"}`}>
+                {feedback === "correct" ? (
+                  <><CheckCircle2 size={18} /> Excellent ! {streak.current >= 3 && `🔥 ${streak.current} d'affilée !`}</>
+                ) : (
+                  <><XCircle size={18} /> Pas tout à fait…</>
+                )}
+              </div>
+              {feedback === "wrong" && (
+                <div className="px-3 py-2 rounded-lg bg-emerald-900/20 border border-emerald-700/30 text-emerald-300 text-sm">
+                  ✅ Bonne réponse :{" "}
+                  <span className="font-semibold">
+                    {question.type === "qcm" && question.choix && question.reponse_index !== undefined
+                      ? question.choix[question.reponse_index]
+                      : question.type === "calcul" && question.expected_number !== undefined
+                      ? `${question.expected_number}${question.unit ? ` ${question.unit}` : ""}`
+                      : question.reponse_texte ?? "—"}
+                  </span>
+                </div>
               )}
             </div>
           )}

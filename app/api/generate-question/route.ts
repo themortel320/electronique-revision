@@ -47,18 +47,22 @@ export async function POST(req: NextRequest) {
 Génère UNE question originale sur : **${chapter}** (matière : ${subject})
 Niveau : **${difficulty}**
 
-Contraintes de variété OBLIGATOIRES :
-- Varie le type : QCM, calcul direct, vrai/faux, ou "trouver l'erreur"
-- Varie les valeurs numériques (utilise des nombres concrets et réalistes)
-- Varie la formulation (commence différemment à chaque fois)
-- Parfois inclus un contexte réel (circuit dans une maison, voiture, téléphone, etc.)
-- Parfois pose une question piège ou contre-intuitive
-- Pour QCM : 4 choix avec un seul correct, les mauvais doivent être plausibles
+RÈGLES STRICTES selon le type :
 
-Pour les questions de calcul numérique : fournis expected_number et unit.
-Pour QCM : fournis choix[] et reponse_index (0-based).
-Pour vrai/faux : reponse_texte = "vrai" ou "faux".${historyClause}
+1. Type "qcm" : OBLIGATOIRE → choix (tableau de 4 strings) + reponse_index (0, 1, 2 ou 3)
+2. Type "calcul" : OBLIGATOIRE → expected_number (nombre décimal exact) + unit (ex: "Ω", "V", "A", "W")
+   - La question doit avoir UNE réponse numérique précise et unique
+   - expected_number doit être le résultat correct du calcul, arrondi à 2 décimales
+3. Type "vrai_faux" : OBLIGATOIRE → reponse_texte = "vrai" ou "faux" (minuscules)
+4. Type "trouver_erreur" : OBLIGATOIRE → reponse_texte avec la correction en 1-2 mots clés
 
+Contraintes de variété :
+- Varie les valeurs numériques (nombres concrets et réalistes)
+- Varie la formulation
+- Parfois ajoute un contexte réel (maison, voiture, téléphone...)
+- Pour QCM : les mauvaises réponses doivent être plausibles${historyClause}
+
+IMPORTANT : Vérifie que ta réponse est mathématiquement correcte avant de répondre.
 Réponds en JSON valide uniquement.`;
 
   const { object } = await generateObject({
