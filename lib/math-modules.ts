@@ -39,6 +39,18 @@ export const mathModules: CourseModule[] = [
         use: "Dérivée du logarithme naturel, définie pour x > 0. Utilisée pour transformer des produits en sommes lors de dérivations complexes.",
       },
     ],
+    lesson: {
+      analogy:
+        "Imagine que tu roules en voiture. Ta position est f(t). La dérivée f'(t), c'est ton compteur de vitesse : elle te dit à quelle vitesse ta position change à chaque instant. Si f'(t) > 0 tu avances, si f'(t) < 0 tu recules, si f'(t) = 0 tu es à l'arrêt.",
+      steps: [
+        "La dérivée mesure le taux de variation instantané d'une fonction. Géométriquement, f'(x₀) est la pente de la droite tangente à la courbe en x₀.",
+        "Définition formelle : f'(x) = lim[h→0] (f(x+h)−f(x))/h. En pratique, on ne calcule jamais avec cette limite — on utilise des règles.",
+        "Règle fondamentale des puissances : (xⁿ)' = n·xⁿ⁻¹. Tu 'descends' l'exposant devant et tu le diminues de 1. Exemples : (x²)' = 2x, (x³)' = 3x², (x)' = 1, (constante)' = 0.",
+        "La dérivée est linéaire : (af + bg)' = af' + bg'. Ça veut dire qu'on peut dériver terme à terme. (3x² − 5x + 2)' = 6x − 5.",
+        "Étude de variations : si f'(x) > 0 sur un intervalle → f est croissante. Si f'(x) < 0 → f décroissante. Là où f'(x) = 0, chercher un maximum ou minimum local.",
+        "Dérivées à mémoriser : (eˣ)' = eˣ (unique !), (ln x)' = 1/x, (sin x)' = cos x, (cos x)' = −sin x.",
+      ],
+    },
     example:
       "f(x) = 3x² − 5x + 2. En appliquant (xⁿ)' = nxⁿ⁻¹ terme à terme : f'(x) = 6x − 5. En x=2 : f'(2) = 12 − 5 = 7 (pente de la tangente en x=2).",
     qa: [
@@ -114,6 +126,18 @@ export const mathModules: CourseModule[] = [
         tip: "(sin(ax))' = a·cos(ax). (cos(ax))' = −a·sin(ax). Ne pas oublier le a par la règle de la composée.",
       },
     ],
+    lesson: {
+      analogy:
+        "Les règles de dérivation sont comme des recettes de cuisine : chaque 'plat' (type de fonction) a sa recette. Maîtrise les recettes de base, et tu peux dériver n'importe quelle fonction, même les plus complexes.",
+      steps: [
+        "Règle du produit (fg)' = f'g + fg' : pour dériver un produit, on dérive le premier en gardant le second, puis on garde le premier en dérivant le second, et on additionne. Mnémo : 'prime-seconde + première-prime-seconde'.",
+        "Erreur classique : (fg)' ≠ f' × g'. Le produit des dérivées n'est PAS la dérivée du produit ! Exemple correct : (x²·eˣ)' = 2x·eˣ + x²·eˣ = eˣ(2x + x²).",
+        "Règle du quotient (f/g)' = (f'g − fg') / g² : 'haut-prime × bas − haut × bas-prime, le tout sur bas²'. L'ordre du numérateur compte (signe − pas +).",
+        "Règle de la composée (f(g(x)))' = f'(g(x))·g'(x) : on identifie l'intérieur u=g(x) et l'extérieur f. On dérive l'extérieur (en gardant l'intérieur intact) et on multiplie par la dérivée de l'intérieur.",
+        "Exemples composée : (sin(3x))' = cos(3x) × 3 = 3cos(3x). (e^(x²))' = e^(x²) × 2x. ((2x+1)³)' = 3(2x+1)² × 2 = 6(2x+1)².",
+        "Valeurs de sin/cos à maîtriser : (sin x)' = cos x, (cos x)' = −sin x. Avec composée : (sin(ax+b))' = a·cos(ax+b).",
+      ],
+    },
     example:
       "f(x) = x²·sin(x). Règle du produit : f'(x) = (x²)'·sin(x) + x²·(sin x)' = 2x·sin(x) + x²·cos(x). En x=0 : f'(0) = 0.",
     qa: [
@@ -180,6 +204,18 @@ export const mathModules: CourseModule[] = [
         tip: "Notation crochet : [F(x)]ₐᵇ = F(b) − F(a). Attention au signe : l'aire est négative si f(x) < 0 sur [a,b].",
       },
     ],
+    lesson: {
+      analogy:
+        "L'intégration est l'opération inverse de la dérivation : si la dérivée 'descend' une marche (x² → 2x), l'intégrale 'remonte' (2x → x²). Géométriquement, l'intégrale définie c'est l'aire sous la courbe — comme sommer des colonnes infiniment fines.",
+      steps: [
+        "Une primitive F de f est une fonction telle que F'(x) = f(x). Il en existe une infinité : si F est une primitive, alors F + C (C constante) en est une autre. D'où le +C dans les intégrales indéfinies.",
+        "Règle des puissances inversée : ∫xⁿdx = xⁿ⁺¹/(n+1) + C. On monte l'exposant de 1 et on divise par ce nouvel exposant. Exemples : ∫x²dx = x³/3 + C, ∫x⁴dx = x⁵/5 + C.",
+        "Primitives à mémoriser : ∫eˣdx = eˣ + C, ∫(1/x)dx = ln|x| + C, ∫cos(x)dx = sin(x) + C, ∫sin(x)dx = −cos(x) + C.",
+        "Intégrale définie ∫ₐᵇf(x)dx = F(b) − F(a) : le +C disparaît dans la soustraction. Méthode : trouver une primitive, évaluer en b, soustraire la valeur en a. Notation crochet : [F(x)]ₐᵇ.",
+        "Interprétation géométrique : si f(x) ≥ 0 sur [a,b], l'intégrale = aire entre la courbe et l'axe x. Si f change de signe, les zones négatives soustraient de l'aire positive.",
+        "Erreur courante : oublier le +C dans les primitives indéfinies, ou inverser a et b dans l'intégrale définie (∫ₐᵇ = −∫ᵦₐ).",
+      ],
+    },
     example:
       "Calcule ∫₀² (x² + 1) dx. Primitive : F(x) = x³/3 + x. [F(x)]₀² = (8/3 + 2) − (0) = 8/3 + 6/3 = 14/3 ≈ 4.67.",
     qa: [
@@ -236,6 +272,18 @@ export const mathModules: CourseModule[] = [
         tip: "Si n → ∞ et |q| < 1 : Sₙ → u₀/(1 − q). C'est la somme d'une série géométrique convergente.",
       },
     ],
+    lesson: {
+      analogy:
+        "Suite arithmétique = escalier (on monte ou descend d'un pas constant). Suite géométrique = bactéries qui doublent (on multiplie par un facteur constant). L'une grandit linéairement, l'autre de façon exponentielle.",
+      steps: [
+        "Une suite est une liste ordonnée de nombres. Chaque nombre est un 'terme' noté uₙ (n = rang, à partir de 0 ou 1 selon la convention).",
+        "Suite arithmétique : on ajoute la même valeur à chaque fois. Raison r = uₙ₊₁ − uₙ (constante). Terme général : uₙ = u₀ + n·r. Exemple : 2, 5, 8, 11 → r = 3, uₙ = 2 + 3n.",
+        "Suite géométrique : on multiplie par la même valeur à chaque fois. Raison q = uₙ₊₁/uₙ (constante). Terme général : uₙ = u₀ × qⁿ. Exemple : 3, 6, 12, 24 → q = 2, uₙ = 3 × 2ⁿ.",
+        "Somme des n premiers termes — arithmétique : Sₙ = n × (u₀ + uₙ₋₁) / 2 (moyenne × nombre de termes). Géométrique : Sₙ = u₀ × (1 − qⁿ)/(1 − q) pour q ≠ 1.",
+        "Convergence : une suite arithmétique (r ≠ 0) diverge toujours (→ +∞ ou −∞). Une suite géométrique converge vers 0 si |q| < 1, diverge si |q| > 1. Si q = 1 : constante.",
+        "Récurrence : pour prouver qu'une propriété P(n) est vraie pour tout n, montrer P(0) (initialisation), puis supposer P(n) vraie et prouver P(n+1) (hérédité).",
+      ],
+    },
     example:
       "Suite géométrique : u₀ = 1 000, q = 1.05 (placement bancaire à 5%/an). u₁₀ = 1000 × 1.05¹⁰ ≈ 1 629 €. La valeur double en environ 14 ans (règle des 72 : 72/5 ≈ 14).",
     qa: [
@@ -292,6 +340,18 @@ export const mathModules: CourseModule[] = [
         tip: "Moyen mnémo pour sin : 0 → √0/2, 30° → √1/2, 45° → √2/2, 60° → √3/2, 90° → √4/2. On fait passer √0 à √4 au numérateur !",
       },
     ],
+    lesson: {
+      analogy:
+        "Imagine un point qui tourne sur une roue de rayon 1. Sa hauteur à chaque instant, c'est sin(θ). Sa position horizontale, c'est cos(θ). Ces deux fonctions décrivent tous les mouvements circulaires : alternateurs, signaux AC, ondes sonores.",
+      steps: [
+        "Le cercle trigonométrique : cercle de rayon 1 centré en O. Pour un angle θ (en radians), le point M sur le cercle a pour coordonnées (cos θ, sin θ).",
+        "Conversion degrés ↔ radians : θ(rad) = θ(°) × π/180. Repères : 0° = 0, 30° = π/6, 45° = π/4, 60° = π/3, 90° = π/2, 180° = π, 360° = 2π.",
+        "Valeurs exactes à mémoriser — sin : sin(0)=0, sin(30°)=1/2, sin(45°)=√2/2, sin(60°)=√3/2, sin(90°)=1. Pour cos, c'est l'ordre inverse : cos(0)=1, cos(30°)=√3/2, cos(45°)=√2/2, cos(60°)=1/2, cos(90°)=0.",
+        "Identité fondamentale : cos²θ + sin²θ = 1 (Pythagore sur le cercle unité). Dérivées : (sin x)' = cos x et (cos x)' = −sin x. Et tan θ = sin θ / cos θ.",
+        "Formules d'addition : sin(a+b) = sin a cos b + cos a sin b. cos(a+b) = cos a cos b − sin a sin b. Permettent de calculer sin(75°) ou de simplifier des expressions.",
+        "Formules doubles : sin(2x) = 2 sin x cos x. cos(2x) = cos²x − sin²x = 1 − 2sin²x. Très utiles pour les intégrales de fonctions trigonométriques.",
+      ],
+    },
     example:
       "Résoudre sin(x) = √3/2 sur [0, 2π]. sin(x) = √3/2 → x = π/3 ou x = π − π/3 = 2π/3. Solutions : x ∈ {π/3, 2π/3} ≈ {1.047, 2.094}.",
     qa: [

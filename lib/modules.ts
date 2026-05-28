@@ -39,6 +39,20 @@ export const courseModules: CourseModule[] = [
         tip: "R2 est la résistance côté GND. Plus R2 est grande, plus Vout est proche de Vin.",
       },
     ],
+    lesson: {
+      analogy:
+        "Imagine un tuyau d'eau : la tension U est la pression de l'eau, le courant I est le débit qui coule, et la résistance R est le rétrécissement du tuyau. Plus il est étroit, moins d'eau passe — et plus la pression y est grande.",
+      diagramId: "ohm",
+      diagramCaption: "Circuit simple : batterie 12 V, résistance 470 Ω. Le courant I = U/R circule dans la boucle.",
+      steps: [
+        "Comprendre les 3 grandeurs : U (volts) = tension, c'est la 'force' qui pousse les électrons. I (ampères) = courant, c'est la quantité d'électrons qui circule par seconde. R (ohms) = résistance, c'est ce qui s'oppose à ce passage.",
+        "La loi d'Ohm les relie : U = R × I. Si tu connais deux valeurs, tu calcules la troisième. Exemple : R = 470 Ω, U = 12 V → I = 12 / 470 ≈ 25 mA.",
+        "Résistances en série (bout à bout) : les tensions s'additionnent, le courant est identique partout. Req = R1 + R2. C'est comme mettre deux rétrécissements de tuyau à la suite.",
+        "Résistances en parallèle (côte à côte) : la tension est la même aux bornes de chaque résistance, les courants se divisent. Req = (R1 × R2)/(R1 + R2). Req est toujours inférieure à la plus petite résistance.",
+        "Le diviseur de tension : deux résistances en série permettent d'obtenir une tension intermédiaire. Vout = Vin × R2/(R1+R2). Très utilisé pour adapter des niveaux de signal.",
+        "La puissance dissipée par une résistance : P = U × I (en watts). Si P dépasse la valeur de la résistance (ex. 0.25 W pour une résistance 1/4 W), elle surchauffe. Toujours vérifier !",
+      ],
+    },
     example:
       "Vin = 12 V, R1 = 1 kΩ, R2 = 2 kΩ → Vout = 12 × 2/(1+2) = 8 V. Courant total = 12/3000 = 4 mA.",
     qa: [
@@ -108,6 +122,19 @@ export const courseModules: CourseModule[] = [
         tip: "C'est pour cela qu'on met une diode de roue libre en parallèle avec une bobine (relais, moteur).",
       },
     ],
+    lesson: {
+      analogy:
+        "Un condensateur, c'est comme un réservoir d'eau : il se remplit progressivement, au début très vite, puis de plus en plus lentement. La résistance en série est comme un robinet qui limite le débit de remplissage.",
+      diagramId: "rc",
+      diagramCaption: "Circuit RC : la résistance limite le courant de charge. Uc monte en courbe exponentielle.",
+      steps: [
+        "Le condensateur stocke de l'énergie sous forme de charge électrique. Sa capacité C se mesure en Farads (F) — en pratique µF, nF ou pF. Il ne laisse pas passer le courant continu une fois chargé.",
+        "La constante de temps τ = R × C (en secondes si R en ohms et C en farads) détermine la vitesse de charge. C'est le temps pour atteindre 63% de la tension finale.",
+        "La charge suit une courbe exponentielle : Uc(t) = E × (1 − e^(−t/τ)). À t = τ : 63%. À t = 2τ : 86%. À t = 5τ : 99% → on considère le condensateur 'chargé'.",
+        "La décharge est aussi exponentielle mais décroissante : Uc(t) = U0 × e^(−t/τ). Le condensateur restitue son énergie progressivement.",
+        "La bobine (inductance) est le dual du condensateur : elle s'oppose aux variations brusques de COURANT (pas de tension). Sa loi : uL = L × (di/dt). Toujours ajouter une diode de protection en parallèle sur une bobine !",
+      ],
+    },
     example:
       "R = 47 kΩ, C = 10 µF → τ = 47 000 × 0.00001 = 0.47 s. Le condensateur est 'chargé' (99%) après 5 × 0.47 = 2.35 s.",
     qa: [
@@ -167,6 +194,19 @@ export const courseModules: CourseModule[] = [
         use: "Une diode classique ne conduit (If > 0) que si la tension appliquée dépasse son seuil Vf (~0.7 V Si). En dessous, elle est bloquée.",
       },
     ],
+    lesson: {
+      analogy:
+        "Une diode, c'est comme un clapet anti-retour sur un tuyau d'eau : le liquide passe dans un sens, mais est bloqué dans l'autre. La diode est un 'sens unique' pour le courant électrique.",
+      diagramId: "led",
+      diagramCaption: "Circuit LED : la résistance R limite le courant pour protéger la LED.",
+      steps: [
+        "La diode laisse passer le courant de l'anode (A, patte longue d'une LED) vers la cathode (K, patte courte). Dans l'autre sens, elle bloque.",
+        "Pour conduire, une diode silicium a besoin d'au moins 0.7 V (c'est son seuil Vf). Pour une LED, ce seuil dépend de la couleur : rouge ≈ 2 V, vert ≈ 2.1 V, bleu/blanc ≈ 3.2 V.",
+        "Ne jamais brancher une LED directement sur une alimentation ! Sans résistance de protection, le courant monte jusqu'à brûler la LED. Toujours calculer R = (Vcc − Vf) / I avec I typiquement 10–20 mA.",
+        "La diode Zener est une diode spéciale qui conduit en inverse à partir d'une tension précise (Vz = 3.3 V, 5.1 V, etc.). Elle sert à réguler ou stabiliser une tension. Exemple : Vz = 5.1 V → Vout = 5.1 V quelle que soit la charge.",
+        "Pour identifier les broches d'une diode : la bande blanche sur le boîtier marque la cathode (K). Pour une LED : patte longue = anode (+), patte courte = cathode (−).",
+      ],
+    },
     example:
       "LED bleue (Vf = 3.2 V) sur alimentation 5 V, I = 15 mA → R = (5 − 3.2) / 0.015 = 120 Ω. On choisit 150 Ω (sécurité).",
     qa: [
@@ -223,6 +263,20 @@ export const courseModules: CourseModule[] = [
         use: "Le courant d'émetteur est la somme des courants de collecteur et de base. Dans les calculs pratiques (Ic >> Ib), on approxime Ie ≈ Ic.",
       },
     ],
+    lesson: {
+      analogy:
+        "Le transistor BJT est un robinet électronique : une toute petite commande (courant de base) contrôle un grand débit (courant collecteur). C'est comme une vanne d'eau hydraulique pilotée par une pression de commande.",
+      diagramId: "transistor",
+      diagramCaption: "Transistor NPN en commutation : Ib commande Ic. La résistance Rb protège la base.",
+      steps: [
+        "Le transistor BJT a 3 broches : Base (B) = l'entrée de commande, Collecteur (C) = là où arrive le courant principal, Émetteur (E) = la sortie (reliée au GND pour un NPN).",
+        "NPN en commutation : si Ib ≈ 0 → transistor bloqué (interrupteur ouvert, Ic = 0). Si on injecte Ib suffisant → transistor saturé (interrupteur fermé, Ic = max et Vce ≈ 0.2 V).",
+        "Le gain β (ou hFE) relie base et collecteur : Ic = β × Ib. β vaut typiquement 50 à 500 selon le transistor. Toujours vérifier la fiche technique (datasheet).",
+        "Pour calculer la résistance de base Rb : 1) Trouver le courant Ic de la charge. 2) Choisir β_sat = 10 (sécurité). 3) Ib = Ic / β_sat. 4) Rb = (Vcmd − 0.7) / Ib.",
+        "Toujours protéger les charges inductives (relais, moteur) avec une diode de roue libre (1N4007) en antiparallèle : anode côté collecteur, cathode côté VCC. Sans elle, la bobine génère une surtension qui détruit le transistor.",
+        "PNP : même principe mais tout est inversé. Le courant de base va de l'émetteur vers la base. La charge est côté émetteur (VCC). Moins courant que NPN mais utile pour les commandes 'high-side'.",
+      ],
+    },
     example:
       "Commande d'un relais (Ic = 100 mA) depuis une GPIO 3.3 V. β_sat = 10 → Ib = 10 mA. Rb = (3.3 − 0.7)/0.01 = 260 Ω → choisir 270 Ω.",
     qa: [
@@ -283,6 +337,18 @@ export const courseModules: CourseModule[] = [
         use: "Forme développée de KVL pour une maille : la tension de la source est égale à la somme des chutes de tension sur chaque résistance traversée.",
       },
     ],
+    lesson: {
+      analogy:
+        "Kirchhoff, c'est la comptabilité de l'électricité : 'ce qui entre doit sortir' (nœuds = bilan courant) et 'les gains = les pertes' (mailles = bilan tension). Aucun électron ne se perd, aucune tension ne disparaît.",
+      steps: [
+        "Loi des nœuds (KCL) : en tout point de jonction du circuit, la somme des courants entrants égale la somme des courants sortants. ΣI_entrant = ΣI_sortant. C'est la conservation de la charge.",
+        "Méthode KCL : attribue une flèche (sens arbitraire) à chaque courant de branche. Écris l'équation pour chaque nœud. Si un résultat est négatif, le courant réel est dans le sens inverse — c'est normal !",
+        "Loi des mailles (KVL) : en parcourant n'importe quelle boucle fermée, la somme algébrique de toutes les tensions est nulle. ΣU = 0.",
+        "Méthode KVL : choisis un sens de parcours (horaire ou antihoraire). Les sources rencontrées dans leur sens de flèche sont positives. Les chutes sur les résistances (R×I) sont négatives dans le sens du courant.",
+        "Application : un circuit à 2 mailles et 3 inconnues → écrire 1 équation KCL + 2 équations KVL → système de 3 équations → résoudre par substitution.",
+        "Vérification : une fois trouvé, remplace les valeurs dans toutes tes équations. Toutes doivent être vérifiées, sinon il y a une erreur de signe quelque part.",
+      ],
+    },
     example:
       "Circuit : 12 V, R1=4 Ω, R2=8 Ω en série. KVL : 12 = 4I + 8I → I = 1 A. U_R1 = 4 V, U_R2 = 8 V. Vérif : 4+8 = 12 V ✓",
     qa: [
@@ -342,6 +408,20 @@ export const courseModules: CourseModule[] = [
         tip: "Filtre passe-bas en régime sinusoïdal = intégrateur en régime impulsionnel.",
       },
     ],
+    lesson: {
+      analogy:
+        "Un filtre RC, c'est comme un filtre de café : le papier laisse passer le liquide (basses fréquences = passe-bas) mais retient le marc (hautes fréquences). En électronique, la 'taille des trous' est réglée par R et C.",
+      diagramId: "rc-filter",
+      diagramCaption: "Filtre passe-bas RC : R en série, C vers la masse. La fréquence de coupure fc sépare ce qui passe de ce qui est atténué.",
+      steps: [
+        "Un signal électrique peut être composé de plusieurs fréquences (basses, hautes). Un filtre laisse passer certaines et atténue les autres.",
+        "Filtre passe-bas RC : R en série avec la source, C en parallèle vers GND. Le condensateur court-circuite les hautes fréquences vers la masse. À basse fréquence, Xc est grand → Vout ≈ Vin. À haute fréquence, Xc ≈ 0 → Vout ≈ 0.",
+        "Filtre passe-haut RC : C en série, R vers GND. Inverse du passe-bas. Bloque le courant continu (DC) et les basses fréquences. Utilisé en audio pour couper le 'fond de bruit'.",
+        "La fréquence de coupure fc = 1 / (2π × R × C). C'est la fréquence limite à laquelle le signal est atténué de 3 dB (70.7% de son amplitude). Au-delà (passe-bas) : −20 dB par décade.",
+        "Calcul pratique : fc = 0.159 / (R × C). Pour fc = 1 kHz avec R = 10 kΩ → C = 0.159 / (10 000 × 1 000) ≈ 16 nF.",
+        "Application courante : un microcontrôleur lit un capteur bruité → filtre passe-bas avant l'entrée ADC. Un ampli audio → filtre passe-haut pour couper le DC. Un signal carré → filtre → signal triangulaire ou sinusoïdal approché.",
+      ],
+    },
     example:
       "R = 10 kΩ, C = 10 nF → fc = 1/(2π × 10 000 × 10×10⁻⁹) ≈ 1 592 Hz ≈ 1.6 kHz. Tout signal au-dessus de 1.6 kHz sera atténué.",
     qa: [
@@ -407,6 +487,21 @@ export const courseModules: CourseModule[] = [
         tip: "Un AOP alimenté en ±15V ne peut pas donner Vout = 50V même si Av × Vin = 50V.",
       },
     ],
+    lesson: {
+      analogy:
+        "L'AOP est comme un chef d'orchestre avec une règle absolue : il fait tout pour que V+ et V− soient égales. Si V+ > V−, il monte la sortie. Si V+ < V−, il la baisse. Le réseau de résistances autour de lui détermine comment ce 'rattrapage' se traduit en gain.",
+      diagramId: "op-amp",
+      diagramCaption: "Montage non-inverseur : Vout = (1 + R2/R1) × Vin. R1 et R2 fixent le gain.",
+      steps: [
+        "L'AOP idéal a 2 entrées : V+ (non-inverseuse, +) et V− (inverseuse, −), et une sortie. Son gain interne est quasi-infini, mais on le limite avec un réseau de contre-réaction.",
+        "Règle d'or n°1 : V+ = V− (la différence est nulle quand l'AOP est en régime linéaire avec contre-réaction négative). Cette règle est le point de départ de tout calcul d'AOP.",
+        "Règle d'or n°2 : aucun courant n'entre dans les entrées + et −. Toute l'entrée est 'vue' comme un circuit ouvert.",
+        "Montage inverseur (entrée sur V− via R1, contre-réaction R2) : Av = −R2/R1. Le signe − signifie que la sortie est l'opposé de l'entrée. Utilisation : amplifier un signal en l'inversant.",
+        "Montage non-inverseur (entrée sur V+, diviseur R1/R2 sur V−) : Av = 1 + R2/R1. Toujours positif, toujours ≥ 1. La sortie suit l'entrée.",
+        "Suiveur de tension : R2=0, R1=infini → Av=1. Vout = Vin exactement. Utilité : isoler deux étages (le suiveur présente une haute impédance d'entrée et une basse impédance de sortie).",
+        "Comparateur : sans contre-réaction, l'AOP compare V+ et V−. Si V+ > V−, Vout sature à +Vcc. Si V+ < V−, Vout sature à −Vcc. Utilisé dans les thermostats, détecteurs de seuil, Schmitt triggers.",
+      ],
+    },
     example:
       "Montage inverseur : R1 = 5 kΩ, R2 = 50 kΩ, Vin = 0.5 V → Av = −50/5 = −10. Vout = −10 × 0.5 = −5 V. La sortie est bien l'opposé amplifié.",
     qa: [

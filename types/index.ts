@@ -9,6 +9,17 @@ export type QAItem = {
   answer: string;
 };
 
+export type Lesson = {
+  /** One-line analogy / real-world hook */
+  analogy: string;
+  /** Ordered explanation steps */
+  steps: string[];
+  /** Key to look up in DIAGRAMS registry */
+  diagramId?: string;
+  /** Optional diagram caption */
+  diagramCaption?: string;
+};
+
 export type CourseModule = {
   id: string;
   subject: "electronics" | "math";
@@ -19,6 +30,8 @@ export type CourseModule = {
   formulaDetails: FormulaDetail[];
   example: string;
   qa: QAItem[];
+  /** Rich pedagogical content */
+  lesson?: Lesson;
 };
 
 export type ExerciseCategory =

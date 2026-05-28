@@ -2,10 +2,9 @@
 
 import { submitScore } from "@/lib/leaderboard";
 import { getPseudo, setPseudo, checkPseudoAvailable, reservePseudo, getUserToken } from "@/lib/user";
-import { CheckCircle2, XCircle, Trophy, RotateCcw, ChevronRight, Loader2, User, BookOpen, ChevronDown, Sparkles, Pencil } from "lucide-react";
+import { CheckCircle2, XCircle, Trophy, RotateCcw, ChevronRight, Loader2, User, BookOpen, ChevronDown, Pencil } from "lucide-react";
 import { useState, useMemo, useEffect } from "react";
 import { QUIZ_CATEGORIES, QuizCategory, QuizQuestion } from "@/lib/quiz-questions";
-import type { GeneratedQuestion } from "@/app/api/generate-question/route";
 
 type Phase = "setup" | "select" | "answering" | "feedback" | "done";
 
@@ -27,11 +26,6 @@ export function Quiz() {
   const [animKey, setAnimKey] = useState(0);
   const [submitted, setSubmitted] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
-  const [useAI, setUseAI] = useState(false);
-  const [aiQuestion, setAiQuestion] = useState<GeneratedQuestion | null>(null);
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiSelected, setAiSelected] = useState<number | null>(null);
-  const [aiFeedback, setAiFeedback] = useState<"correct" | "wrong" | null>(null);
   const [changingPseudo, setChangingPseudo] = useState(false);
 
   // Load existing pseudo on mount
@@ -92,11 +86,11 @@ export function Quiz() {
 
   // ── Start quiz ──────────────────────────────────────────────────────────────
   function startQuiz(cat: QuizCategory) {
-    const qs = cat.id === "mixed"
-      ? shuffle(QUIZ_CATEGORIES.filter(c => c.id !== "mixed").flatMap(c => c.questions)).slice(0, 10)
-      : shuffle(cat.questions).slice(0, 10);
+    const pool = cat.id === "mixed"
+      ? QUIZ_CATEGORIES.filter(c => c.id !== "mixed").flatMap(c => c.questions)
+      : cat.questions;
     setCategory(cat);
-    setQuestions(qs);
+    setQuestions(shuffle(pool).slice(0, 10));
     setIndex(0);
     setScore(0);
     setSelected(null);
@@ -136,48 +130,6 @@ export function Quiz() {
       setPhase("answering");
       setAnimKey((k) => k + 1);
     }
-  }
-
-  // ── AI question generation ──────────────────────────────────────────────────
-  const CAT_TO_CHAPTER: Record<string, string> = {
-    electronics: "Loi d'Ohm & associations de résistances",
-    maintenance: "Instruments de mesure (multimètre, oscilloscope)",
-    fabrication: "Fabrication de circuits imprimés PCB (gerber, couches, vias)",
-    math: "Dérivées : règles de base",
-    mixed: "Loi d'Ohm & associations de résistances",
-  };
-
-  async function generateAIQuestion() {
-    if (!category) return;
-    setAiLoading(true);
-    setAiQuestion(null);
-    setAiSelected(null);
-    setAiFeedback(null);
-    try {
-      const res = await fetch("/api/generate-question", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          subject: ["math"].includes(category.id) ? "Mathématiques" : "Électronique",
-          chapter: CAT_TO_CHAPTER[category.id] ?? category.label,
-          difficulty: "intermédiaire",
-          history: [],
-        }),
-      });
-      const data = await res.json();
-      if (data.question) setAiQuestion(data.question);
-    } catch {
-      // silently fail
-    } finally {
-      setAiLoading(false);
-    }
-  }
-
-  function checkAI(idx: number) {
-    if (!aiQuestion || aiFeedback) return;
-    setAiSelected(idx);
-    setAiFeedback(idx === aiQuestion.reponse_index ? "correct" : "wrong");
-    if (idx === aiQuestion.reponse_index) setScore((s) => s + 1);
   }
 
   const grade = useMemo(() => {
@@ -278,18 +230,6 @@ export function Quiz() {
           <p className="text-white/40 text-sm">10 questions statiques ou générées par IA · Score dans le classement</p>
         </div>
 
-        {/* AI toggle */}
-        <div className="flex items-center justify-center gap-3 p-3 rounded-xl bg-white/3 border border-white/8">
-          <Sparkles size={14} className={useAI ? "text-violet-400" : "text-white/20"} />
-          <span className="text-sm text-white/60">Questions générées par IA</span>
-          <button
-            onClick={() => setUseAI((v) => !v)}
-            className={`relative w-10 h-5 rounded-full transition-colors ${useAI ? "bg-violet-600" : "bg-white/10"}`}
-          >
-            <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all shadow ${useAI ? "left-5" : "left-0.5"}`} />
-          </button>
-          {useAI && <span className="text-xs text-violet-400 font-medium">Actif</span>}
-        </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {QUIZ_CATEGORIES.map((cat) => (
@@ -392,62 +332,6 @@ export function Quiz() {
           )}
         </div>
       </div>
-
-      {/* AI question bonus */}
-      {useAI && (
-        <div className="rounded-xl border border-violet-700/30 bg-violet-950/20 p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Sparkles size={13} className="text-violet-400" />
-              <span className="text-violet-300 text-xs font-semibold uppercase tracking-wider">Question IA bonus</span>
-            </div>
-            <button
-              onClick={generateAIQuestion}
-              disabled={aiLoading}
-              className="text-xs text-violet-400 hover:text-violet-300 flex items-center gap-1 transition-colors disabled:opacity-50"
-            >
-              {aiLoading ? <Loader2 size={11} className="animate-spin" /> : <RotateCcw size={11} />}
-              {aiQuestion ? "Nouvelle" : "Générer"}
-            </button>
-          </div>
-
-          {!aiQuestion && !aiLoading && (
-            <p className="text-white/30 text-xs text-center py-2">Clique sur "Générer" pour avoir une question unique créée par l'IA</p>
-          )}
-          {aiLoading && (
-            <div className="flex items-center justify-center gap-2 py-3 text-violet-400/60 text-xs">
-              <Loader2 size={14} className="animate-spin" /> Génération en cours…
-            </div>
-          )}
-          {aiQuestion && !aiLoading && (
-            <div className="space-y-3">
-              <p className="text-white text-sm leading-relaxed">{aiQuestion.enonce}</p>
-              {aiQuestion.type === "qcm" && aiQuestion.choix && (
-                <div className="space-y-1.5">
-                  {aiQuestion.choix.map((choice, i) => {
-                    let cls = "w-full text-left px-3 py-2 rounded-lg border text-xs transition-all text-white/70 border-white/10 hover:border-violet-500/50 hover:text-white";
-                    if (aiFeedback) {
-                      if (i === aiQuestion.reponse_index) cls = "w-full text-left px-3 py-2 rounded-lg border text-xs border-emerald-500/60 bg-emerald-900/20 text-emerald-300";
-                      else if (i === aiSelected) cls = "w-full text-left px-3 py-2 rounded-lg border text-xs border-red-500/40 bg-red-900/10 text-red-400";
-                      else cls = "w-full text-left px-3 py-2 rounded-lg border text-xs border-white/5 text-white/20 opacity-50";
-                    }
-                    return (
-                      <button key={i} onClick={() => checkAI(i)} disabled={!!aiFeedback} className={cls}>
-                        <span className="font-bold mr-2 text-white/30">{String.fromCharCode(65 + i)}.</span>{choice}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-              {aiFeedback && (
-                <div className={`text-xs p-3 rounded-lg border ${aiFeedback === "correct" ? "border-emerald-700/30 bg-emerald-900/20 text-emerald-300" : "border-red-700/20 bg-red-900/10 text-red-300"}`}>
-                  {aiFeedback === "correct" ? "✅" : "❌"} {aiQuestion.explication_detaillee}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
 
       {/* Cheat sheet panel */}
       {cheatSheet && sheetOpen && (
