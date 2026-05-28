@@ -14,7 +14,7 @@ function shuffle<T>(arr: T[]): T[] {
 
 export function Quiz() {
   const [phase, setPhase] = useState<Phase>("setup");
-  const [pseudo, setPseudoState] = useState("");
+  const [pseudoState, setPseudoState] = useState("");
   const [pseudoInput, setPseudoInput] = useState("");
   const [pseudoError, setPseudoError] = useState("");
   const [pseudoLoading, setPseudoLoading] = useState(false);
