@@ -268,7 +268,10 @@ export default function MaintenancePage() {
 
       {/* Floating tutor button */}
       {tab !== "exercices" && (
-        <AITutorButton onClick={() => openTutor()} />
+        <AITutorButton
+          module={tab === "maintenance" ? maintenanceModules[0] : fabricationModules[0]}
+          initialQuestion={tutorOpen ? tutorQuestion : undefined}
+        />
       )}
     </div>
   );
