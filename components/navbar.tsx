@@ -12,13 +12,14 @@ import { loadStreak } from "@/lib/progress";
 import { MiniCalculator } from "./mini-calculator";
 
 const links = [
-  { href: "/study",     label: "📅 Plan" },
-  { href: "/modules",   label: "Cours" },
-  { href: "/math",      label: "∂ Maths" },
-  { href: "/exercises", label: "Exercices" },
-  { href: "/quiz",      label: "Quiz" },
-  { href: "/dashboard", label: "Dashboard", icon: <LayoutDashboard size={13} /> },
-  { href: "/exam",      label: "Examen",    icon: <ClipboardCheck size={13} /> },
+  { href: "/study",       label: "📅 Plan" },
+  { href: "/modules",     label: "Cours" },
+  { href: "/math",        label: "∂ Maths" },
+  { href: "/maintenance", label: "🔧 Maintenance" },
+  { href: "/exercises",   label: "Exercices" },
+  { href: "/quiz",        label: "Quiz" },
+  { href: "/dashboard",   label: "Dashboard", icon: <LayoutDashboard size={13} /> },
+  { href: "/exam",        label: "Examen",    icon: <ClipboardCheck size={13} /> },
 ];
 
 export function Navbar() {

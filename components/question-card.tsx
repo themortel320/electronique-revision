@@ -16,6 +16,17 @@ const CHAPTERS: Chapter[] = [
   { id: "Filtres électroniques", label: "Filtres", subject: "Électronique" },
   { id: "Transistors BJT et MOSFET", label: "Transistors", subject: "Électronique" },
   { id: "Puissance et énergie électrique", label: "Puissance", subject: "Électronique" },
+  // Maintenance
+  { id: "Instruments de mesure (multimètre, oscilloscope)", label: "Instruments de mesure", subject: "Maintenance" },
+  { id: "Diagnostic de pannes électroniques", label: "Diagnostic de pannes", subject: "Maintenance" },
+  { id: "Soudure et montage THT/CMS", label: "Soudure & Montage", subject: "Maintenance" },
+  { id: "Normes et sécurité électrique (habilitations, IP, CEM)", label: "Normes & Sécurité", subject: "Maintenance" },
+  // Fabrication
+  { id: "Fabrication de circuits imprimés PCB (gerber, couches, vias)", label: "Fabrication PCB", subject: "Fabrication" },
+  { id: "Composants CMS/SMD et procédés d'assemblage (reflow, vague)", label: "Assemblage CMS", subject: "Fabrication" },
+  { id: "Lecture de datasheet et documentation technique", label: "Lecture Datasheet", subject: "Fabrication" },
+  { id: "Contrôle qualité et inspection en électronique (AOI, IPC-610)", label: "Contrôle qualité", subject: "Fabrication" },
+  // Mathématiques
   { id: "Dérivées : règles de base", label: "Dérivées (base)", subject: "Mathématiques" },
   { id: "Dérivées : règles du produit, quotient, composée", label: "Dérivées (avancé)", subject: "Mathématiques" },
   { id: "Primitives et intégrales", label: "Intégrales", subject: "Mathématiques" },

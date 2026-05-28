@@ -432,6 +432,338 @@ export const courseModules: CourseModule[] = [
       },
     ],
   },
+  /* ─────────────── MAINTENANCE ─────────────── */
+  {
+    id: "instruments-mesure",
+    subject: "electronics" as const,
+    title: "Instruments de mesure",
+    summary: "Utilisation du multimètre, de l'oscilloscope et du générateur de signaux pour mesurer et diagnostiquer.",
+    notions: [
+      "Le multimètre mesure la tension (V), le courant (A) et la résistance (Ω) — toujours vérifier le calibre avant de mesurer",
+      "En mode voltmètre : se branche EN PARALLÈLE avec le composant (impédance interne très élevée)",
+      "En mode ampèremètre : se branche EN SÉRIE dans le circuit (impédance interne très faible)",
+      "L'oscilloscope affiche la tension en fonction du temps — idéal pour les signaux variables (AC, impulsions)",
+      "La base de temps (time/div) règle l'échelle temporelle, la sensibilité verticale (V/div) règle l'amplitude",
+      "Le générateur de signaux produit des signaux sinusoïdaux, carrés ou triangulaires à fréquence réglable",
+      "La sonde oscilloscope × 10 divise le signal par 10 pour protéger l'oscilloscope (et voir des tensions élevées)",
+    ],
+    formulas: [
+      "Résistance : R = U / I (mesure indirecte)",
+      "Période : T = 1/f",
+      "Tension efficace : Ueff = Umax / √2 (sinusoïdal)",
+    ],
+    formulaDetails: [
+      {
+        expr: "R = U / I",
+        use: "Mesure indirecte d'une résistance : mesurer la tension aux bornes ET le courant qui la traverse (circuit alimenté). Sinon, le multimètre en mode Ω mesure directement (composant hors tension).",
+        tip: "ATTENTION : toujours mettre le circuit hors tension avant de mesurer une résistance au multimètre. Une résistance mesurée en circuit alimenté donnera une valeur erronée.",
+      },
+      {
+        expr: "T = 1 / f",
+        use: "Sur l'oscilloscope : repère une période complète sur l'axe temporel. T = nombre de divisions × base de temps (time/div). La fréquence est l'inverse de la période.",
+        tip: "Exemple : signal sinusoïdal occupe 4 divisions, base de temps = 1 ms/div → T = 4 ms → f = 250 Hz.",
+      },
+      {
+        expr: "Ueff = Umax / √2 ≈ Umax × 0.707",
+        use: "La tension efficace (RMS) d'un signal sinusoïdal. Le multimètre en mode AC affiche directement la valeur efficace. L'oscilloscope affiche la valeur crête (Umax).",
+        tip: "230 V secteur = valeur efficace. La valeur crête est 230 × √2 ≈ 325 V. Important en sécurité !",
+      },
+    ],
+    example:
+      "Mesurer la fréquence d'un signal à l'oscilloscope : base de temps = 500 µs/div, une période = 6 divisions → T = 6 × 500 µs = 3 ms → f = 1/0.003 ≈ 333 Hz.",
+    qa: [
+      {
+        keywords: ["multimètre", "branchement", "tension", "voltmètre", "parallèle"],
+        answer:
+          "En mode voltmètre (V) : brancher les sondes EN PARALLÈLE avec le composant à mesurer. Rouge sur le point le plus positif, noir sur la masse (GND). Ne jamais brancher un voltmètre en série : il a une résistance interne très élevée (~10 MΩ) mais court-circuiterait la source s'il était en série.",
+      },
+      {
+        keywords: ["ampèremètre", "courant", "série", "ampère"],
+        answer:
+          "En mode ampèremètre (A) : OUVRIR le circuit à l'endroit voulu et brancher l'ampèremètre EN SÉRIE pour que le courant le traverse. Commencer par le calibre le plus élevé puis diminuer. JAMAIS brancher un ampèremètre en parallèle (résistance interne quasi nulle → court-circuit).",
+      },
+      {
+        keywords: ["oscilloscope", "réglage", "calibrage", "sonde", "div"],
+        answer:
+          "Réglages clés de l'oscilloscope : 1) V/div (sensibilité verticale) : ajuster pour que le signal occupe 4-6 divisions. 2) Time/div (base de temps) : ajuster pour voir 2-3 périodes. 3) Trigger (déclenchement) : stabilise l'affichage. 4) Couplage AC pour voir les variations, DC pour la tension absolue.",
+      },
+      {
+        keywords: ["continuité", "bip", "tester", "câble", "rupture"],
+        answer:
+          "Mode continuité (buzzer) : teste si deux points sont reliés électriquement. Le multimètre bipe si la résistance est < quelques ohms. Utile pour : vérifier un câble, tester une soudure, contrôler qu'une piste PCB n'est pas coupée. CIRCUIT HORS TENSION obligatoire.",
+      },
+      {
+        keywords: ["diode", "test", "vérifier", "anode", "cathode"],
+        answer:
+          "Mode diode sur le multimètre : il affiche la chute de tension directe. Diode silicium : ~0.5–0.7V. LED : 1.8–3.4V selon la couleur. Si le multimètre affiche '1' (hors calibre) dans les deux sens → diode claquée (circuit ouvert). Si 0 dans les deux sens → diode en court-circuit.",
+      },
+    ],
+  },
+
+  {
+    id: "diagnostic-pannes",
+    subject: "electronics" as const,
+    title: "Diagnostic de pannes",
+    summary: "Méthodologie systématique pour identifier et corriger les pannes dans les circuits électroniques.",
+    notions: [
+      "Une panne est soit un circuit ouvert (rupture → plus de courant), soit un court-circuit (résistance nulle → trop de courant)",
+      "Méthode de la dichotomie : couper le circuit en deux, tester le milieu, recommencer",
+      "Toujours vérifier l'alimentation EN PREMIER (80% des pannes viennent de là)",
+      "Inspecter visuellement avant de mesurer : composants brûlés, soudures froides, condensateurs gonflés",
+      "La prise en charge implique de ne JAMAIS court-circuiter une alimentation pour 'tester'",
+      "Le signal injection et signal tracing : injecter un signal connu, suivre sa propagation au point de perte",
+    ],
+    formulas: [
+      "Vout ≠ attendu → chercher où le signal se perd",
+      "R_mesurée >> R_nominale → rupture ou contact mauvais",
+      "R_mesurée ≈ 0 → court-circuit",
+    ],
+    formulaDetails: [
+      {
+        expr: "Méthode dichotomie",
+        use: "Diviser le circuit en deux, tester le point milieu. Si OK → la panne est dans la seconde moitié. Si KO → la panne est dans la première moitié. Répéter jusqu'à isoler le composant défaillant.",
+        tip: "Sur une chaîne de traitement de signal (amplificateur, filtre, convertisseur…), toujours commencer au milieu de la chaîne.",
+      },
+      {
+        expr: "Test de tension: mesurer VCC, GND, Vout",
+        use: "Séquence systématique : 1) VCC présente ? 2) GND correct (0V) ? 3) Tension d'entrée du bloc OK ? 4) Tension de sortie du bloc OK ? La panne est dans le premier bloc où la sortie diffère de l'attendu.",
+        tip: "Ne pas oublier les fusibles, interrupteurs et connecteurs : ils représentent une grande partie des pannes réelles.",
+      },
+      {
+        expr: "Composant chaud au toucher → suspect",
+        use: "Un composant anormalement chaud (transistor, régulateur, résistance) est souvent en surcharge. Cela peut indiquer un court-circuit en aval, une valeur de composant incorrecte, ou un composant défaillant.",
+      },
+    ],
+    example:
+      "Panne d'un ampli audio : 1) Alim OK (±15V) ✓. 2) Signal à l'entrée de l'AOP OK ✓. 3) Sortie de l'AOP = 0V alors qu'attendu ≠ 0V → AOP défaillant. On change le composant.",
+    qa: [
+      {
+        keywords: ["panne", "méthode", "diagnostic", "chercher", "trouver"],
+        answer:
+          "Méthode en 5 étapes : 1) Inspection visuelle (composants brûlés, soudures froides, traces de claquage). 2) Vérifier l'alimentation (tensions, fusibles). 3) Mesurer les tensions aux points clés. 4) Utiliser la dichotomie pour isoler le bloc défaillant. 5) Tester/remplacer le composant suspect.",
+      },
+      {
+        keywords: ["circuit ouvert", "rupture", "coupure", "discontinuité"],
+        answer:
+          "Un circuit ouvert est une rupture dans la continuité électrique. Symptômes : tension nulle là où elle devrait être présente, résistance infinie là où elle devrait être finie. Causes : soudure froide, piste PCB coupée, composant grillé (résistance oxydée), connecteur desserré. Détecter avec le mode continuité (buzzer) du multimètre.",
+      },
+      {
+        keywords: ["court-circuit", "cc", "fusion", "fusible"],
+        answer:
+          "Un court-circuit est une connexion non voulue à faible résistance entre deux points. Symptômes : fusible soufflé, composant très chaud, tension d'alimentation s'effondre à la mise sous tension. Trouver avec le mode Ω (résistance → 0 Ω entre les deux points). Chercher une soudure en excès, un fil pincé, un condensateur claqué.",
+      },
+      {
+        keywords: ["soudure froide", "mauvais contact", "intermittent"],
+        answer:
+          "Soudure froide = mauvaise soudure qui fait intermittent. La soudure a une apparence terne, grumeleuse ou fissurée (au lieu d'être brillante et lisse). Causes : mouvement pendant le refroidissement, flux insuffisant, température trop basse. Refaire la soudure avec de l'étain neuf et un bon flux.",
+      },
+      {
+        keywords: ["condensateur", "gonflé", "claqué", "ESR"],
+        answer:
+          "Condensateur électrolytique gonflé (bombé au sommet) ou avec un électrolyte qui fuit = DÉFAILLANT, à changer immédiatement. Très fréquent dans les alimentations. Peut aussi être claqué sans signe visible : mesurer son ESR (résistance série équivalente) avec un testeur ESR. Un ESR élevé → condensateur à changer.",
+      },
+    ],
+  },
+
+  {
+    id: "soudure-montage",
+    subject: "electronics" as const,
+    title: "Soudure et montage",
+    summary: "Techniques de soudure traversante (THT) et CMS (SMD), outils, qualité de soudure et dessoudure.",
+    notions: [
+      "La soudure est un alliage métallique (étain/plomb ou sans plomb) qui crée une liaison électrique et mécanique",
+      "THT (Through Hole Technology) : composants à pattes insérées dans des trous percés — facile, robuste",
+      "CMS / SMD (Surface Mount Device) : composants soudés en surface — plus petits, automatisables",
+      "La bonne soudure est brillante, lisse, en forme de volcan et mouille bien la patte et le pad",
+      "Température du fer à souder : 320–380°C pour étain sans plomb, 280–320°C pour Sn/Pb",
+      "Le flux est un agent chimique qui enlève l'oxyde des surfaces et améliore la mouillabilité",
+      "Ne jamais chauffer un composant plus de 3–5 secondes d'affilée (risque de destruction)",
+    ],
+    formulas: [
+      "Temps de soudure : 2–3 s par joint (THT)",
+      "Épaisseur étain CMS : pâte à braser ~0.15 mm",
+    ],
+    formulaDetails: [
+      {
+        expr: "Soudure THT : 4 étapes",
+        use: "1) Chauffer simultanément la patte ET le pad (pas juste l'un ou l'autre). 2) Amener l'étain côté opposé au fer (pas sur la panne). 3) Laisser l'étain couler 1–2 s. 4) Retirer l'étain puis le fer. Ne pas souffler ni bouger la pièce.",
+        tip: "L'étain doit couler vers la chaleur, pas être poussé par le fer. Si vous devez insister, la surface est oxydée → appliquer du flux.",
+      },
+      {
+        expr: "Soudure CMS : procédé four",
+        use: "1) Déposer la pâte à braser par pochoir. 2) Placer les composants CMS (pick & place). 3) Passer au four de refusion (reflow). 4) Inspection visuelle ou aux rayons X. Température de pic : ~245°C (sans plomb).",
+        tip: "Pour une soudure CMS manuelle (station air chaud) : préchauffer le PCB, appliquer flux, déposer l'étain sur les pads, poser le composant, chauffer à l'air chaud 350°C en cercles.",
+      },
+      {
+        expr: "Dessoudure à la tresse ou à la pompe",
+        use: "Tresse à dessouder : appuyer sur la soudure avec la tresse + fer → la tresse absorbe l'étain par capillarité. Pompe à dessouder : chauffer la soudure, aspirer rapidement. Pour les CI : utiliser une station air chaud + pince.",
+        tip: "Ajouter un peu d'étain frais sur une vieille soudure oxydée avant de dessouder — l'étain neuf contient du flux et facilite la dessoudure.",
+      },
+    ],
+    example:
+      "Soudure d'une résistance THT : insérer les pattes, plier légèrement pour tenir, chauffer pad + patte 2 s, amener l'étain, laisser couler 1 s, retirer → joint brillant en forme de cône. Couper l'excès de patte avec une pince coupante.",
+    qa: [
+      {
+        keywords: ["température", "fer", "souder", "réglage", "°c"],
+        answer:
+          "Température recommandée : 320–350°C pour l'étain sans plomb (SAC305), 280–320°C pour l'étain plombé (Sn63/Pb37). Trop chaud → brûle le flux trop vite, risque de délaminage du PCB. Trop froid → soudure froide, mauvaise mouillabilité. Utiliser une station à température contrôlée.",
+      },
+      {
+        keywords: ["bonne soudure", "qualité", "apparence", "reconnaitre"],
+        answer:
+          "Une BONNE soudure : brillante (ou légèrement mate pour sans plomb), lisse, en forme de cône/volcan qui remonte bien autour de la patte, angle de contact < 90°. Une MAUVAISE soudure : terne et grumeleuse (froide), sphérique (mauvaise mouillabilité), excès d'étain qui recouvre tout, pont entre deux pads.",
+      },
+      {
+        keywords: ["cms", "smd", "surface", "monter", "coller"],
+        answer:
+          "Pour souder un composant CMS manuellement : 1) Étamer un pad avec un peu d'étain. 2) Tenir le composant avec une pince à épiler. 3) Chauffer l'étain déposé et poser le composant. 4) Souder l'autre côté (ou les autres broches). Utiliser beaucoup de flux pour faciliter.",
+      },
+      {
+        keywords: ["flux", "décapant", "oxyde", "mouillabilité"],
+        answer:
+          "Le flux est indispensable pour une bonne soudure. Il dissout les oxydes métalliques sur les surfaces, permettant à l'étain de 'mouiller' (s'étaler). Sans flux : soudures grumeleuses et mauvais contact. Types : colophane (rosin), no-clean (reste sur le PCB), hydrosoluble (à nettoyer à l'eau).",
+      },
+      {
+        keywords: ["dessouder", "retirer", "composant", "tresse", "pompe"],
+        answer:
+          "Méthodes de dessoudure : 1) Tresse à dessouder : chauffer + absorber l'étain. 2) Pompe à dessouder (pistolet) : chauffer puis aspirer. 3) Air chaud (station SMD) : pour les CMS et boîtiers QFP/BGA. Toujours ajouter du flux avant de dessouder pour améliorer la fluidité de l'étain.",
+      },
+    ],
+  },
+
+  /* ─────────────── FABRICATION ─────────────── */
+  {
+    id: "fabrication-pcb",
+    subject: "electronics" as const,
+    title: "Fabrication de circuits imprimés (PCB)",
+    summary: "Conception, technologie et procédés de fabrication des circuits imprimés (PCB).",
+    notions: [
+      "PCB (Printed Circuit Board) = circuit imprimé : un support isolant avec des pistes conductrices en cuivre",
+      "Le substrat le plus courant est le FR4 (fibre de verre époxy), épaisseur standard 1.6 mm",
+      "Les couches de cuivre (layers) : simple face (1 couche), double face (2 couches), multicouche (4, 6, 8...)",
+      "Les composants THT traversent le PCB avec leurs pattes. Les CMS/SMD sont collés en surface",
+      "Les vias sont des trous métallisés qui relient des pistes sur des couches différentes",
+      "Le vernis épargne (solder mask) protège les pistes et empêche les ponts de soudure involontaires",
+      "La sérigraphie (silkscreen) imprime les repères de composants (références, polarités) en blanc",
+    ],
+    formulas: [
+      "Largeur piste : W = I / (k × ΔT^0.44 × A^0.725) (formule IPC-2221)",
+      "Impédance piste (microstrip) : Z ≈ 87/√(εr+1.41) × ln(5.98h / (0.8W+T))",
+    ],
+    formulaDetails: [
+      {
+        expr: "Règle pratique largeur de piste",
+        use: "Règle simple : pour les signaux faibles (< 100 mA), 0.2–0.3 mm suffit. Pour 1 A : prévoir 1 mm minimum. Pour le plan de masse et d'alimentation : 2–3 mm. La largeur détermine la résistance et la capacité de courant de la piste.",
+        tip: "Toujours utiliser un calculateur de largeur de piste en ligne (ex : PCBway ou Saturn PCB Toolkit) pour les courants > 500 mA.",
+      },
+      {
+        expr: "Clearance (écartement) minimum",
+        use: "L'écartement minimum entre deux pistes dépend de la tension. Règle 50 V/mm pour les circuits basse tension (< 50 V). Pour 230 V secteur : minimum 3 mm sur PCB standard. Les normes IEC et UL imposent des distances précises selon la tension et la catégorie de surtension.",
+        tip: "En fabrication pro : clearance minimum 0.1–0.15 mm pour les PCB standard. La tolérance de gravure est ~10% de la largeur.",
+      },
+      {
+        expr: "Procédé de fabrication industriel",
+        use: "1) Dépôt de cuivre sur le substrat. 2) Application de résine photosensible (dry film). 3) Insolation UV à travers le film (photomasque). 4) Développement → enlève la résine non exposée. 5) Gravure chimique (chlorure ferrique ou persulfate) → enlève le cuivre non protégé. 6) Strip → enlève la résine restante.",
+      },
+    ],
+    example:
+      "PCB double face pour une alimentation 5A : pistes d'alimentation 3 mm, plan de masse complet en face bottom, clearance 0.5 mm, trous de fixation Ø3.2 mm. Commande chez JLCPCB ou PCBway : gerber files (layers + drills + soldermask + silkscreen).",
+    qa: [
+      {
+        keywords: ["gerber", "fichier", "fabrication", "envoyer", "usine"],
+        answer:
+          "Les fichiers Gerber sont le format standard pour envoyer un PCB en fabrication. Ils contiennent : couches cuivre (GTL/GBL), vernis épargne (GTS/GBS), sérigraphie (GTO/GBO), perçage (DRL/XLN). Exportés depuis les logiciels de CAO (KiCad, Altium, EasyEDA). Fabricants populaires : JLCPCB, PCBway, Eurocircuits.",
+      },
+      {
+        keywords: ["couche", "layer", "multicouche", "face", "double"],
+        answer:
+          "Single face (1 couche) : pistes d'un seul côté, composants de l'autre. Simple et bon marché. Double face (2 couches) : pistes des deux côtés reliées par des vias. Multicouche (4L, 6L...) : pour circuits denses, avec plans d'alimentation et masse dédiés. Plus de couches = meilleur signal et moins d'interférences.",
+      },
+      {
+        keywords: ["via", "traversant", "borgne", "aveugle"],
+        answer:
+          "Via traversant : trou métallisé de haut en bas, visible des deux côtés. Standard et économique. Via borgne (blind via) : relie la surface à une couche interne. Via enterré (buried via) : relie deux couches internes. Ces derniers sont plus chers à fabriquer. Diamètre minimum via standard : 0.3 mm (perçage) avec anneau de cuivre 0.6 mm.",
+      },
+      {
+        keywords: ["logiciel", "cad", "conception", "schéma", "routage"],
+        answer:
+          "Logiciels de conception PCB : KiCad (gratuit, open source, professionnel), EasyEDA (en ligne, gratuit, connecté à LCSC/JLCPCB), Altium Designer (professionnel, payant), Eagle (payant, version gratuite limitée). Flux : Schéma → Netlist → Placement → Routage → DRC (vérification) → Export Gerber.",
+      },
+      {
+        keywords: ["prototypage", "maison", "fabriquer", "graver", "chimique"],
+        answer:
+          "Fabrication artisanale (proto) : 1) Imprimer le tracé sur film transparent. 2) Insoler une plaque présensibilisée (UV). 3) Développer au soude caustique (NaOH). 4) Graver au chlorure ferrique (FeCl3) ou au persulfate d'ammonium. 5) Nettoyer et percer. Alternative : fraisage CNC (fraiseuse PCB). Pour un proto rapide et fiable, commander en ligne (5 PCBs 10×10 cm pour ~5€ chez JLCPCB).",
+      },
+    ],
+  },
+
+  {
+    id: "normes-securite",
+    subject: "electronics" as const,
+    title: "Normes et sécurité électrique",
+    summary: "Sécurité des personnes et des équipements : habilitations, normes, EPI, risques électriques.",
+    notions: [
+      "La tension dangereuse pour l'homme commence à 25 V AC ou 60 V DC (selon IEC 60479)",
+      "Le courant est plus dangereux que la tension : 10 mA = seuil de tétanisation, 100 mA = fibrillation ventriculaire mortelle",
+      "Habilitation électrique (France) : B0, B1, B2, BC, BR pour le personnel non électricien et électricien",
+      "Les 5 règles de sécurité (travaux hors tension) : Séparer - Condamner - Vérifier l'absence de tension (VAT) - Mettre à la terre - Délimiter la zone",
+      "NF C 15-100 : norme française de référence pour les installations électriques basse tension",
+      "Marquage CE : conformité aux directives européennes (CEM, basse tension, sécurité)",
+      "Norme IP (Indice de Protection) : IP65 = protégé contre la poussière et les jets d'eau",
+    ],
+    formulas: [
+      "Résistance du corps humain : 1 000 Ω (peau sèche) à 500 Ω (peau humide)",
+      "I_corps = U_contact / R_corps (loi d'Ohm appliquée au corps)",
+      "IP XY : X = protection solides (0-6), Y = protection liquides (0-9)",
+    ],
+    formulaDetails: [
+      {
+        expr: "I_corps = U / R_corps",
+        use: "À 230V AC avec peau humide (R=500Ω) : I = 230/500 = 0.46 A = 460 mA → MORTEL. À 25V AC avec peau sèche (R=1000Ω) : I = 25/1000 = 25 mA → Tétanisation possible. C'est pourquoi la limite de sécurité est fixée à 25V AC.",
+        tip: "Ne jamais sous-estimer les basses tensions en milieu humide (salle de bain, chantier mouillé, atelier).",
+      },
+      {
+        expr: "Indice de Protection IP XY",
+        use: "Premier chiffre X (0-6) : protection contre solides et poussières. 6 = étanche total à la poussière. Deuxième chiffre Y (0-9) : protection contre l'eau. 4 = projections tout sens, 5 = jets d'eau, 7 = immersion 30 min, 8 = immersion prolongée.",
+        tip: "IP44 = atelier standard. IP65 = extérieur protégé. IP67 = équipement submersible. IP68 = usage sous-marin.",
+      },
+      {
+        expr: "Classe d'équipement électrique",
+        use: "Classe I : protection par mise à la terre (le fil vert/jaune). Classe II : double isolation (symbole carré dans carré), pas besoin de terre. Classe III : très basse tension (< 50V AC, < 120V DC), pas de risque électrique.",
+        tip: "Vérifier toujours la classe de l'équipement avant intervention. Un outil classe II ne doit PAS être relié à la terre.",
+      },
+    ],
+    example:
+      "Intervention sur un tableau électrique : 1) Couper le disjoncteur général. 2) Condamner (cadenas + pancarte). 3) VAT avec voltmètre homologué. 4) Mettre à la terre et en court-circuit les conducteurs. 5) Baliser la zone. Seulement ensuite : travailler.",
+    qa: [
+      {
+        keywords: ["habilitation", "b0", "b1", "b2", "br", "électricien"],
+        answer:
+          "Habilitations électriques françaises (norme NF C18-510) : B0/H0 = non électricien, peut travailler sous surveillance près des ouvrages. B1/H1 = effectue des travaux hors tension. B2/H2 = prépare et surveille des travaux. BR = dépannage et essais BT. BC/HC = consignation. Le chiffre 1/2 correspond à la tension (BT/HTA).",
+      },
+      {
+        keywords: ["vat", "absence", "tension", "vérifier", "consignation"],
+        answer:
+          "VAT = Vérification d'Absence de Tension : étape OBLIGATOIRE avant tout travail hors tension. Utiliser un VAT homologué (catégorie CAT III minimum), vérifier que le VAT fonctionne sur une source connue AVANT et APRÈS la vérification. Le principe : on ne fait jamais confiance à un disjoncteur seul.",
+      },
+      {
+        keywords: ["norme", "nf c 15-100", "installation", "basse tension"],
+        answer:
+          "NF C 15-100 régit les installations électriques basse tension en France. Points clés : disjoncteur différentiel 30 mA obligatoire dans salles d'eau, salle de bain à zones (0, 1, 2, 3), protection par défaut de terre, section des câbles selon courant admissible, couleurs des conducteurs (vert/jaune = terre, bleu = neutre, rouge/brun/noir = phase).",
+      },
+      {
+        keywords: ["cem", "compatibilité", "électromagnétique", "perturbation", "blindage"],
+        answer:
+          "CEM (Compatibilité ÉlectroMagnétique) : un équipement doit 1) ne pas émettre de perturbations qui gênent d'autres appareils (émission), 2) fonctionner correctement malgré les perturbations extérieures (immunité). En conception PCB : plan de masse continu, filtres sur alimentation, composants sensibles éloignés des sources de bruit, câbles blindés pour signaux faibles.",
+      },
+      {
+        keywords: ["epi", "protection", "individuel", "gants", "chaussures"],
+        answer:
+          "EPI électriques obligatoires selon la tension : gants isolants (classe 00 pour < 500V, classe 0 pour < 1000V), écran facial anti-arc, casque isolant, chaussures de sécurité isolantes. Vérifier la date de péremption des gants (test annuel obligatoire). Vêtements résistants à l'arc (EPI arc flash) pour les interventions HTA.",
+      },
+    ],
+  },
+
   /* ─────────────── Transistors avancés ─────────────── */
   {
     id: "transistors-advanced",
