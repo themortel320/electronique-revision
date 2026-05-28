@@ -256,22 +256,11 @@ export default function MaintenancePage() {
           />
 
           <AITutor
-            courseContext={{
-              title: exerciceSubTab === "maintenance" ? "Maintenance électronique" : "Fabrication PCB",
-              subject: "electronics",
-              summary:
-                exerciceSubTab === "maintenance"
-                  ? "Instruments de mesure, diagnostic de pannes, soudure, normes de sécurité"
-                  : "Fabrication de circuits imprimés, assemblage CMS, lecture datasheet, contrôle qualité",
-              formulas:
-                exerciceSubTab === "maintenance"
-                  ? ["R = U/I", "T = 1/f", "Ueff = Umax/√2", "I_corps = U/R_corps"]
-                  : ["W = I/k", "IP XY", "Clearance = tension/50"],
-              notions:
-                exerciceSubTab === "maintenance"
-                  ? ["Voltmètre en parallèle", "Ampèremètre en série", "VAT obligatoire", "Soudure THT/CMS", "Habilitations B0/B1/B2"]
-                  : ["FR4", "Couches cuivre", "Vias", "Gerber", "IPC-610", "Reflow", "CMS/SMD"],
-            }}
+            module={
+              exerciceSubTab === "maintenance"
+                ? maintenanceModules[0]
+                : fabricationModules[0]
+            }
             initialQuestion={tutorOpen ? tutorQuestion : undefined}
           />
         </div>
