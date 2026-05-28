@@ -372,4 +372,119 @@ export const courseModules: CourseModule[] = [
       },
     ],
   },
+  /* ─────────────── AOP ─────────────── */
+  {
+    id: "op-amp",
+    subject: "electronics" as const,
+    title: "Amplificateur opérationnel (AOP)",
+    summary: "Fonctionnement idéal de l'AOP, montages inverseur et non-inverseur, comparateur.",
+    notions: [
+      "L'AOP idéal a un gain différentiel infini, une impédance d'entrée infinie et une impédance de sortie nulle",
+      "Règles d'or : la tension entre + et − est nulle (V+ = V−), aucun courant n'entre dans les entrées",
+      "Montage inverseur : la sortie est l'opposé amplifié de l'entrée",
+      "Montage non-inverseur : amplifie sans inverser le signe",
+      "Comparateur : compare V+ et V−, sature en haute ou basse tension",
+    ],
+    formulas: [
+      "Av = −R2/R1 (inverseur)",
+      "Av = 1 + R2/R1 (non-inverseur)",
+      "Vout = Av × Vin",
+    ],
+    formulaDetails: [
+      {
+        expr: "Av = −R2/R1",
+        use: "Gain du montage inverseur. Le signe − indique que la sortie est déphasée de 180°. Ex : R1=10kΩ, R2=100kΩ → Av = −10 (amplification × 10 avec inversion).",
+        tip: "Règle d'or : V− = V+ = 0V (entrée + à GND). Tout le courant traversant R1 passe dans R2.",
+      },
+      {
+        expr: "Av = 1 + R2/R1",
+        use: "Gain du montage non-inverseur. Toujours ≥ 1. La sortie suit l'entrée avec le même signe.",
+        tip: "Si R2=0 (court-circuit) et R1=∞ (absent) → Av=1 : c'est un suiveur de tension, très utile pour isoler des étages.",
+      },
+      {
+        expr: "Vout = Av × Vin",
+        use: "Tension de sortie = gain × entrée. Attention : en pratique limitée par les rails d'alimentation (ex : ±12V). Si Vout calculé dépasse les rails, l'AOP sature.",
+        tip: "Un AOP alimenté en ±15V ne peut pas donner Vout = 50V même si Av × Vin = 50V.",
+      },
+    ],
+    example:
+      "Montage inverseur : R1 = 5 kΩ, R2 = 50 kΩ, Vin = 0.5 V → Av = −50/5 = −10. Vout = −10 × 0.5 = −5 V. La sortie est bien l'opposé amplifié.",
+    qa: [
+      {
+        keywords: ["inverseur", "signe", "phase", "opposé"],
+        answer:
+          "Le montage inverseur a un gain Av = −R2/R1. Le signe − signifie que Vout = −(R2/R1)×Vin. Si Vin est positif, Vout est négatif. C'est utile pour créer des signaux différentiels ou des soustracteurs.",
+      },
+      {
+        keywords: ["suiveur", "buffer", "impédance", "isoler"],
+        answer:
+          "Le suiveur de tension est un AOP en montage non-inverseur avec R2=0 et sans R1 → Av=1. Vout = Vin exactement. Sert à 'tamponner' un signal : impédance d'entrée très haute, impédance de sortie très basse, donc pas de chute de tension due à la charge.",
+      },
+      {
+        keywords: ["comparateur", "seuil", "saturation", "comparer"],
+        answer:
+          "Sans contre-réaction, l'AOP est comparateur : si V+ > V−, Vout ≈ +Vcc. Si V+ < V−, Vout ≈ −Vcc. Utilisé pour détecter un dépassement de seuil (ex : thermostat, détecteur de lumière).",
+      },
+      {
+        keywords: ["règles", "or", "idéal", "courant", "tension"],
+        answer:
+          "Règles d'or de l'AOP idéal : 1) V+ = V− (la tension différentielle est nulle). 2) I+ = I− = 0 (aucun courant dans les entrées). Ces règles permettent de résoudre n'importe quel circuit AOP linéaire facilement.",
+      },
+    ],
+  },
+  /* ─────────────── Transistors avancés ─────────────── */
+  {
+    id: "transistors-advanced",
+    subject: "electronics" as const,
+    title: "Transistors BJT & MOSFET",
+    summary: "Fonctionnement des transistors bipolaires et à effet de champ, modes de commutation et amplification.",
+    notions: [
+      "BJT NPN : IB commande IC. IC = β × IB. Transistor = interrupteur commandé en courant",
+      "MOSFET : tension VGS commande ID. Transistor commandé en tension (sans courant de grille)",
+      "Trois régions : bloqué (off), actif (amplification), saturé (on/commutateur fermé)",
+      "En commutation : BJT saturé → VCE ≈ 0.2V. MOSFET saturé → VDS très faible (RDSon)",
+      "Le MOSFET est préféré en puissance (RDSon faible, pas de courant de grille)",
+    ],
+    formulas: [
+      "IC = β × IB (BJT actif)",
+      "IB = (VCC − VBE) / RB",
+      "ID = f(VGS) (MOSFET, loi quadratique)",
+    ],
+    formulaDetails: [
+      {
+        expr: "IC = β × IB",
+        use: "Relation fondamentale du BJT en régime actif. β (beta ou hFE) est le gain en courant, typiquement 100 à 500. Un courant de base IB de 1 mA contrôle un courant collecteur IC de 100 à 500 mA.",
+        tip: "Pour saturer un BJT : IB_réel > IC_max / β. On ajoute un facteur de forçage : IB_forçage = IC_max / (β/10) pour être sûr d'être en saturation.",
+      },
+      {
+        expr: "IB = (VCC − VBE) / RB",
+        use: "Calcul du courant de base via une résistance RB depuis VCC. VBE ≈ 0.7V pour un transistor silicium.",
+        tip: "Recette de commutation : 1) Calculer IC_max nécessaire. 2) Choisir IB = IC_max/β × 3. 3) Calculer RB = (VCC − 0.7) / IB.",
+      },
+      {
+        expr: "VGS > Vth → MOSFET passant",
+        use: "Le MOSFET s'ouvre quand la tension grille-source dépasse le seuil Vth (1 à 4V selon le transistor). Aucun courant de commande nécessaire — idéal pour les microcontrôleurs.",
+        tip: "MOSFET canal N : VGS positive pour ouvrir. Canal P : VGS négative. Pour commander avec un µC 3.3V, choisir un MOSFET à logique avec Vth ≤ 2V.",
+      },
+    ],
+    example:
+      "Commande d'une LED 100mA avec un BJT NPN (β=200, VCC=5V) : IC=100mA, IB_min=0.5mA, on prend IB=5mA (forçage ×10). RB = (5−0.7)/0.005 = 860Ω → on prend 820Ω.",
+    qa: [
+      {
+        keywords: ["bjt", "bipolaire", "beta", "gain", "courant"],
+        answer:
+          "BJT = transistor bipolaire à jonction. Le courant IB contrôle IC : IC = β × IB. β (ou hFE) est typiquement 100-500. C'est un amplificateur de courant. VBE ≈ 0.7V (seuil d'activation, comme une diode).",
+      },
+      {
+        keywords: ["mosfet", "grille", "vgs", "effet champ"],
+        answer:
+          "MOSFET = Metal Oxide Semiconductor Field Effect Transistor. Commandé en tension VGS (pas de courant de grille). Avantages sur BJT : commande facile (µC), faible pertes à l'état passant (RDSon), commutation rapide. Très utilisé en power electronics et numérique.",
+      },
+      {
+        keywords: ["saturation", "commutation", "interrupteur", "allumer"],
+        answer:
+          "Pour utiliser un transistor comme interrupteur, on le force en saturation : BJT → IB > IC/β × 3 (forçage). MOSFET → VGS bien supérieur à Vth. En saturation : VCE_sat ≈ 0.2V (BJT), VDS_sat = ID×RDSon (MOSFET). Le transistor se comporte comme un interrupteur fermé.",
+      },
+    ],
+  },
 ];

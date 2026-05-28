@@ -1,6 +1,6 @@
 {
-  "name": "electronique-revision",
-  "version": "0.1.0",
+  "name": "electrolab",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -9,12 +9,23 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ai-sdk/google": "^1.2.22",
+    "@ai-sdk/groq": "^1.2.9",
+    "@ai-sdk/openai": "^1.3.24",
+    "@ai-sdk/react": "^1.2.12",
+    "ai": "^4.3.19",
+    "chart.js": "^4.5.1",
+    "framer-motion": "^11.18.2",
+    "katex": "^0.16.47",
+    "lucide-react": "0.453.0",
     "next": "14.2.5",
     "react": "18.3.1",
+    "react-chartjs-2": "^5.3.1",
     "react-dom": "18.3.1",
-    "lucide-react": "0.453.0"
+    "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@types/katex": "^0.16.8",
     "@types/node": "22.7.7",
     "@types/react": "18.3.11",
     "@types/react-dom": "18.3.1",

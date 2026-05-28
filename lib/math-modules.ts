@@ -144,4 +144,172 @@ export const mathModules: CourseModule[] = [
       },
     ],
   },
+  /* ─────────────── Primitives & Intégrales ─────────────── */
+  {
+    id: "integrals",
+    subject: "math",
+    title: "Primitives & Intégrales",
+    summary: "Calcul de primitives, théorème fondamental de l'analyse, intégrale définie et calcul d'aires.",
+    notions: [
+      "Une primitive de f est une fonction F telle que F'(x) = f(x)",
+      "L'intégrale définie ∫ₐᵇ f(x)dx représente l'aire algébrique sous la courbe entre a et b",
+      "Théorème fondamental : ∫ₐᵇ f(x)dx = F(b) − F(a) où F est une primitive de f",
+      "Les règles de primitives sont l'inverse des règles de dérivation",
+      "La constante d'intégration +C apparaît toujours dans les primitives (intégrales indéfinies)",
+    ],
+    formulas: [
+      "∫ xⁿ dx = xⁿ⁺¹/(n+1) + C  (n≠−1)",
+      "∫ eˣ dx = eˣ + C",
+      "∫ cos x dx = sin x + C",
+      "∫ₐᵇ f(x)dx = F(b) − F(a)",
+    ],
+    formulaDetails: [
+      {
+        expr: "∫ xⁿ dx = xⁿ⁺¹/(n+1) + C",
+        use: "Primitive des puissances — inverse de la règle (xⁿ)' = nxⁿ⁻¹. On augmente l'exposant de 1 et on divise par ce nouvel exposant.",
+        tip: "∫x²dx = x³/3 + C. ∫x⁵dx = x⁶/6 + C. ∫1dx = x + C. Cas particulier : ∫x⁻¹dx = ∫(1/x)dx = ln|x| + C.",
+      },
+      {
+        expr: "∫ eˣ dx = eˣ + C",
+        use: "L'exponentielle est sa propre primitive, comme elle est sa propre dérivée. ∫ eᵃˣ dx = eᵃˣ/a + C (règle de la composée inversée).",
+        tip: "∫ e²ˣ dx = e²ˣ/2 + C. ∫ e⁻ˣ dx = −e⁻ˣ + C. Le signe change quand l'exposant est négatif.",
+      },
+      {
+        expr: "∫ₐᵇ f(x)dx = F(b) − F(a)",
+        use: "Théorème fondamental de l'analyse. Pour calculer une intégrale définie : trouver une primitive F, puis évaluer F(b) − F(a). Le +C disparaît dans la soustraction.",
+        tip: "Notation crochet : [F(x)]ₐᵇ = F(b) − F(a). Attention au signe : l'aire est négative si f(x) < 0 sur [a,b].",
+      },
+    ],
+    example:
+      "Calcule ∫₀² (x² + 1) dx. Primitive : F(x) = x³/3 + x. [F(x)]₀² = (8/3 + 2) − (0) = 8/3 + 6/3 = 14/3 ≈ 4.67.",
+    qa: [
+      {
+        keywords: ["primitive", "différence", "intégrale", "lien"],
+        answer:
+          "Primitive F de f : F'(x) = f(x). Il en existe une infinité (différent d'une constante). L'intégrale définie ∫ₐᵇ f(x)dx = F(b) − F(a) utilise n'importe quelle primitive (la constante C se simplifie). Intuition : l'intégration est l'opération inverse de la dérivation.",
+      },
+      {
+        keywords: ["aire", "surface", "géométrique", "sous la courbe"],
+        answer:
+          "∫ₐᵇ f(x)dx = aire algébrique sous la courbe. Si f(x) > 0 sur [a,b] → aire positive. Si f(x) < 0 → aire négative (en dessous de l'axe). Pour l'aire totale, calculer ∫|f(x)|dx ou séparer les zones positives et négatives.",
+      },
+      {
+        keywords: ["cos", "sin", "sinus", "trig", "primitives"],
+        answer:
+          "∫ sin(x)dx = −cos(x) + C. ∫ cos(x)dx = sin(x) + C. Avec la composée : ∫ sin(ax)dx = −cos(ax)/a + C. ∫ cos(ax)dx = sin(ax)/a + C.",
+      },
+    ],
+  },
+  /* ─────────────── Suites numériques ─────────────── */
+  {
+    id: "sequences",
+    subject: "math",
+    title: "Suites numériques",
+    summary: "Suites arithmétiques, géométriques, convergence, limite et raisonnement par récurrence.",
+    notions: [
+      "Une suite est une liste ordonnée de nombres : u₀, u₁, u₂, ..., uₙ",
+      "Suite arithmétique : chaque terme = terme précédent + raison r constante",
+      "Suite géométrique : chaque terme = terme précédent × raison q constante",
+      "Une suite converge si elle tend vers une limite finie quand n → +∞",
+      "Suite géométrique : converge si |q| < 1, diverge si |q| > 1",
+    ],
+    formulas: [
+      "uₙ = u₀ + n·r (arithmétique)",
+      "uₙ = u₀ · qⁿ (géométrique)",
+      "Sₙ = n(u₀ + uₙ)/2 (somme arithmétique)",
+      "Sₙ = u₀ · (1 − qⁿ)/(1 − q) (somme géométrique, q≠1)",
+    ],
+    formulaDetails: [
+      {
+        expr: "uₙ = u₀ + n·r",
+        use: "Terme général d'une suite arithmétique. u₀ = premier terme, r = raison (différence entre termes consécutifs), n = rang (à partir de 0).",
+        tip: "Raison r = uₙ₊₁ − uₙ (constante). Suite croissante si r > 0, décroissante si r < 0. Ex : 2, 5, 8, 11 → r = 3, u₀ = 2, uₙ = 2 + 3n.",
+      },
+      {
+        expr: "uₙ = u₀ · qⁿ",
+        use: "Terme général d'une suite géométrique. q = raison (quotient entre termes consécutifs). Si |q| < 1, les termes tendent vers 0.",
+        tip: "Raison q = uₙ₊₁ / uₙ (constante). Ex : 3, 6, 12, 24 → q = 2, u₀ = 3, uₙ = 3 × 2ⁿ.",
+      },
+      {
+        expr: "Sₙ = u₀(1 − qⁿ)/(1 − q)",
+        use: "Somme des n premiers termes d'une suite géométrique. Très utile en finance (annuités, intérêts composés) et en physique (condensateur).",
+        tip: "Si n → ∞ et |q| < 1 : Sₙ → u₀/(1 − q). C'est la somme d'une série géométrique convergente.",
+      },
+    ],
+    example:
+      "Suite géométrique : u₀ = 1 000, q = 1.05 (placement bancaire à 5%/an). u₁₀ = 1000 × 1.05¹⁰ ≈ 1 629 €. La valeur double en environ 14 ans (règle des 72 : 72/5 ≈ 14).",
+    qa: [
+      {
+        keywords: ["arithmétique", "raison", "différence", "constante"],
+        answer:
+          "Suite arithmétique : uₙ₊₁ = uₙ + r (on ajoute toujours r). Terme général : uₙ = u₀ + n×r. Somme : Sₙ = n(u₀+uₙ)/2 = n(2u₀+(n−1)r)/2. Ex : 1, 4, 7, 10 → r=3, uₙ = 1 + 3n.",
+      },
+      {
+        keywords: ["géométrique", "rapport", "multiplier", "croissance"],
+        answer:
+          "Suite géométrique : uₙ₊₁ = uₙ × q (on multiplie toujours par q). Terme général : uₙ = u₀ × qⁿ. Ex : 2, 6, 18, 54 → q=3, uₙ = 2 × 3ⁿ. Applications : intérêts composés, population, décroissance radioactive.",
+      },
+      {
+        keywords: ["convergence", "limite", "tend", "infini"],
+        answer:
+          "Une suite (uₙ) converge vers L si uₙ → L quand n → +∞. Suite arithmétique : diverge toujours (sauf si r=0). Suite géométrique : converge vers 0 si |q|<1, diverge si |q|>1, reste constante si q=1.",
+      },
+    ],
+  },
+  /* ─────────────── Trigonométrie ─────────────── */
+  {
+    id: "trigonometry",
+    subject: "math",
+    title: "Trigonométrie",
+    summary: "Fonctions sin, cos, tan, identités remarquables, cercle trigonométrique et formules.",
+    notions: [
+      "Le cercle trigonométrique est un cercle de rayon 1 centré en O",
+      "Pour un angle θ (en radians) : le point M a pour coordonnées (cos θ, sin θ)",
+      "tan θ = sin θ / cos θ (non défini quand cos θ = 0)",
+      "Identité fondamentale : cos²θ + sin²θ = 1 (Pythagore sur le cercle unité)",
+      "Radians : π rad = 180°. Conversion : θ(rad) = θ(°) × π/180",
+    ],
+    formulas: [
+      "cos²θ + sin²θ = 1",
+      "tan θ = sin θ / cos θ",
+      "sin(a+b) = sin a cos b + cos a sin b",
+      "cos(a+b) = cos a cos b − sin a sin b",
+    ],
+    formulaDetails: [
+      {
+        expr: "cos²θ + sin²θ = 1",
+        use: "Identité de Pythagore — la plus importante. Permet d'exprimer sin en fonction de cos et vice versa. Utilisée pour simplifier des expressions et résoudre des équations.",
+        tip: "Variantes : sin²θ = 1 − cos²θ. cos²θ = 1 − sin²θ. 1 + tan²θ = 1/cos²θ.",
+      },
+      {
+        expr: "sin(a+b) = sin a cos b + cos a sin b",
+        use: "Formule d'addition des angles. Permet de calculer sin(75°) = sin(45°+30°), de linéariser des produits trig, et de passer de sin(2x) à une forme développée.",
+        tip: "sin(2x) = 2 sin x cos x. cos(2x) = cos²x − sin²x = 1 − 2sin²x = 2cos²x − 1.",
+      },
+      {
+        expr: "Valeurs exactes clés",
+        use: "À mémoriser : sin(0)=0, sin(30°)=1/2, sin(45°)=√2/2, sin(60°)=√3/2, sin(90°)=1. Pour cos : même valeurs mais dans l'ordre inverse (cos=sin(90°−θ)).",
+        tip: "Moyen mnémo pour sin : 0 → √0/2, 30° → √1/2, 45° → √2/2, 60° → √3/2, 90° → √4/2. On fait passer √0 à √4 au numérateur !",
+      },
+    ],
+    example:
+      "Résoudre sin(x) = √3/2 sur [0, 2π]. sin(x) = √3/2 → x = π/3 ou x = π − π/3 = 2π/3. Solutions : x ∈ {π/3, 2π/3} ≈ {1.047, 2.094}.",
+    qa: [
+      {
+        keywords: ["radians", "degrés", "conversion", "π"],
+        answer:
+          "Conversion : θ(rad) = θ(°) × π/180. Inverse : θ(°) = θ(rad) × 180/π. Valeurs clés : 0°=0, 30°=π/6, 45°=π/4, 60°=π/3, 90°=π/2, 180°=π, 360°=2π.",
+      },
+      {
+        keywords: ["identité", "pythagore", "carré", "unité"],
+        answer:
+          "L'identité fondamentale cos²θ + sin²θ = 1 vient du théorème de Pythagore appliqué au cercle unité. Elle génère : sin²θ = 1−cos²θ, 1+tan²θ = 1/cos²θ. Très utile pour simplifier et résoudre des équations trigonométriques.",
+      },
+      {
+        keywords: ["cercle", "trigonométrique", "coordonnées", "angle"],
+        answer:
+          "Cercle trigo de rayon 1. Pour un angle θ, le point M sur le cercle a : x = cos θ, y = sin θ. Cadrans : Q1 (0 à π/2) : sin>0, cos>0. Q2 (π/2 à π) : sin>0, cos<0. Q3 (π à 3π/2) : sin<0, cos<0. Q4 (3π/2 à 2π) : sin<0, cos>0.",
+      },
+    ],
+  },
 ];

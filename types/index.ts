@@ -24,6 +24,8 @@ export type CourseModule = {
 export type ExerciseCategory =
   | "ohm"
   | "power"
+  | "series"
+  | "parallel"
   | "series-parallel"
   | "divider"
   | "diodes"
@@ -31,9 +33,11 @@ export type ExerciseCategory =
 
 export type Difficulty = "easy" | "medium" | "hard";
 
+export type ExerciseCategoryAll = ExerciseCategory | "derivative";
+
 export type Exercise = {
   id: string;
-  category: ExerciseCategory | "derivative";
+  category: ExerciseCategoryAll;
   difficulty: Difficulty;
   question: string;
   expected: number;
@@ -45,11 +49,13 @@ export type Exercise = {
 
 export type ExerciseResult = {
   id: string;
-  category: ExerciseCategory | "derivative";
+  category: ExerciseCategoryAll | string;
   difficulty: Difficulty;
-  success: boolean;
-  userAnswer: number;
-  expected: number;
+  /** Legacy field (kept for old progress data) */
+  success?: boolean;
+  correct?: boolean;
+  userAnswer: string | number;
+  expected: string | number;
   timestamp: string;
 };
 

@@ -65,9 +65,9 @@ export function ExerciseGenerator() {
       id: exercise.id,
       category: exercise.category,
       difficulty: exercise.difficulty,
-      success: ok,
-      userAnswer,
-      expected: exercise.expected,
+      correct: ok,
+      userAnswer: String(userAnswer),
+      expected: String(exercise.expected),
       timestamp: new Date().toISOString(),
     });
     setShowSteps(true);

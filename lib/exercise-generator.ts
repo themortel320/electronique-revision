@@ -55,21 +55,26 @@ export function generateExercise(
         steps: [`P = U x I`, `P = ${u} x ${i} = ${p} W`]
       };
     }
-    case "series-parallel": {
+    case "series-parallel":
+    case "series":
+    case "parallel": {
       const r1 = rand(100, 1000);
       const r2 = rand(100, 1000);
+      if (category === "series") {
+        const req = r1 + r2;
+        return {
+          id, category, difficulty,
+          question: `Calcule Req de ${r1} ohms et ${r2} ohms en série.`,
+          expected: req, unit: "ohms",
+          steps: ["En série: Req = R1 + R2.", `Req = ${r1} + ${r2} = ${req} ohms.`]
+        };
+      }
       const req = round((r1 * r2) / (r1 + r2), 2);
       return {
-        id,
-        category,
-        difficulty,
+        id, category, difficulty,
         question: `Calcule Req de ${r1} ohms et ${r2} ohms en parallele.`,
-        expected: req,
-        unit: "ohms",
-        steps: [
-          "En parallele: Req = (R1 x R2)/(R1 + R2).",
-          `Req = (${r1} x ${r2}) / (${r1} + ${r2}) = ${req} ohms.`
-        ]
+        expected: req, unit: "ohms",
+        steps: ["En parallele: Req = (R1 × R2)/(R1 + R2).", `Req = (${r1} × ${r2}) / (${r1} + ${r2}) = ${req} ohms.`]
       };
     }
     case "divider": {
@@ -123,6 +128,17 @@ export function generateExercise(
           "Formule: Rb = (Vcmd - Vbe) / Ib.",
           `Rb = (${vcmd} - 0.7) / ${ib} = ${rb} ohms.`
         ]
+      };
+    }
+    default: {
+      return {
+        id,
+        category,
+        difficulty,
+        question: "Exercice non disponible pour cette catégorie.",
+        expected: 0,
+        unit: "",
+        steps: [],
       };
     }
   }
