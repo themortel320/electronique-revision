@@ -16,6 +16,7 @@ const links = [
   { href: "/modules",     label: "Cours" },
   { href: "/math",        label: "∂ Maths" },
   { href: "/maintenance", label: "🔧 Maintenance" },
+  { href: "/english",     label: "🇬🇧 English" },
   { href: "/exercises",   label: "Exercices" },
   { href: "/quiz",        label: "Quiz" },
   { href: "/dashboard",   label: "Dashboard", icon: <LayoutDashboard size={13} /> },

@@ -95,14 +95,12 @@ export function MiniCalculator() {
   };
 
   const btnStyle = (key: string) => {
-    const base =
-      "flex items-center justify-center rounded-xl font-semibold transition-all active:scale-90 select-none touch-manipulation " +
-      /* bigger on mobile */ "h-12 sm:h-11 text-base sm:text-sm";
-    if (key === "=") return `${base} bg-violet-600 hover:bg-violet-500 text-white shadow shadow-violet-900/40`;
-    if (["÷", "×", "−", "+"].includes(key)) return `${base} bg-violet-900/50 text-violet-300 hover:bg-violet-800/60 border border-violet-700/30`;
-    if (["C", "±", "%"].includes(key)) return `${base} bg-white/8 text-white/70 hover:bg-white/15 border border-white/10`;
-    if (key === "⌫") return `${base} bg-white/8 text-red-400 hover:bg-red-900/30 border border-white/10`;
-    return `${base} bg-white/5 text-white hover:bg-white/12 border border-white/8`;
+    const base = "flex items-center justify-center rounded-xl font-semibold transition-all active:scale-90 select-none touch-manipulation h-12 sm:h-11 text-base sm:text-sm";
+    if (key === "=")  return `${base} bg-violet-600 hover:bg-violet-500 text-white`;
+    if (["÷", "×", "−", "+"].includes(key)) return `${base} bg-[#2d1f6e] text-violet-300 hover:bg-[#3d2a8e] border border-[#4a3a9a]`;
+    if (["C", "±", "%"].includes(key)) return `${base} bg-[#1e1e35] text-slate-300 hover:bg-[#2a2a45] border border-[#333355]`;
+    if (key === "⌫")  return `${base} bg-[#1e1e35] text-red-400 hover:bg-[#3a1a1a] border border-[#333355]`;
+    return `${base} bg-[#171728] text-white hover:bg-[#222238] border border-[#2a2a42]`;
   };
 
   return (
@@ -127,15 +125,7 @@ export function MiniCalculator() {
       {open && (
         <div
           ref={panelRef}
-          className={`
-            absolute right-0 top-full mt-2 z-50
-            w-[calc(100vw-2rem)] max-w-[280px]
-            sm:w-72
-            rounded-2xl border border-white/10 bg-[#0f0f1a]/98 backdrop-blur-xl
-            shadow-2xl shadow-black/50
-            animate-slide-down
-            p-3
-          `}
+          className="absolute right-0 top-full mt-2 z-50 w-[calc(100vw-2rem)] max-w-[280px] sm:w-72 rounded-2xl border border-[#2a2a4a] bg-[#0f0f1e] shadow-2xl shadow-black/70 p-3"
         >
           {/* Header */}
           <div className="flex items-center justify-between mb-2">
@@ -149,7 +139,7 @@ export function MiniCalculator() {
           </div>
 
           {/* Display */}
-          <div className="mb-3 rounded-xl bg-white/5 border border-white/8 px-4 py-3 text-right min-h-[64px] flex flex-col justify-between">
+          <div className="mb-3 rounded-xl bg-[#0a0a15] border border-[#2a2a42] px-4 py-3 text-right min-h-[64px] flex flex-col justify-between">
             {history[0] && (
               <p className="text-xs text-white/20 truncate mb-1">{history[0]}</p>
             )}
@@ -174,7 +164,7 @@ export function MiniCalculator() {
 
           {/* History */}
           {history.length > 1 && (
-            <div className="mt-3 border-t border-white/8 pt-2 space-y-0.5">
+            <div className="mt-3 border-t border-[#2a2a42] pt-2 space-y-0.5">
               {history.slice(1).map((h, i) => (
                 <p key={i} className="text-xs text-white/25 text-right font-mono truncate">{h}</p>
               ))}
