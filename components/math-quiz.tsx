@@ -1,7 +1,7 @@
 "use client";
 
 import { getPseudo } from "@/lib/user";
-import { upsertLeaderboard } from "@/lib/leaderboard";
+import { submitScore } from "@/lib/leaderboard";
 import { CheckCircle2, XCircle } from "lucide-react";
 import { useState } from "react";
 
@@ -99,11 +99,12 @@ export function MathQuiz() {
   const next = () => {
     if (index + 1 >= QUESTIONS.length) {
       const pseudo = getPseudo() ?? "Anonyme";
-      upsertLeaderboard({
+      submitScore({
         pseudo,
         score: score * 10,
         correct: score,
         total: QUESTIONS.length,
+        category: "math",
         date: new Date().toISOString(),
       });
       setPhase("done");
