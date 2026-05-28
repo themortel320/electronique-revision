@@ -3,15 +3,20 @@ import { Leaderboard } from "@/components/leaderboard";
 
 export default function QuizPage() {
   return (
-    <div className="space-y-6">
-      <header>
-        <h1 className="text-3xl font-bold">Quiz rapide</h1>
-        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-          10 questions · Progression question par question · Score sauvegardé
+    <div className="max-w-4xl mx-auto px-4 py-10 space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent mb-2">
+          Quiz
+        </h1>
+        <p className="text-white/50 text-sm">
+          4 catégories · 10 questions · Score dans le classement mondial
         </p>
-      </header>
-      <Quiz />
-      <Leaderboard />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 items-start">
+        <Quiz />
+        <Leaderboard />
+      </div>
     </div>
   );
 }

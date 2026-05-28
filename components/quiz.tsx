@@ -1,116 +1,69 @@
 "use client";
 
-import { upsertLeaderboard } from "@/lib/leaderboard";
+import { submitScore } from "@/lib/leaderboard";
 import { getPseudo } from "@/lib/user";
-import { CheckCircle2, XCircle } from "lucide-react";
-import { useState } from "react";
+import { CheckCircle2, XCircle, Trophy, RotateCcw, ChevronRight } from "lucide-react";
+import { useState, useMemo } from "react";
+import { QUIZ_CATEGORIES, QuizCategory, QuizQuestion } from "@/lib/quiz-questions";
 
-const QUESTIONS = [
-  {
-    q: "Quelle est la loi d'Ohm ?",
-    options: ["P = U × I", "U = R × I", "R = P / I²", "I = P × U"],
-    answer: 1,
-    explanation: "U = R × I : la tension est égale à la résistance multipliée par le courant.",
-  },
-  {
-    q: "Quelle unité mesure la résistance ?",
-    options: ["Volt (V)", "Ampère (A)", "Watt (W)", "Ohm (Ω)"],
-    answer: 3,
-    explanation: "La résistance se mesure en Ohm (Ω), du nom du physicien Georg Ohm.",
-  },
-  {
-    q: "Une LED nécessite toujours…",
-    options: ["Une bobine en série", "Une résistance en série", "Un condensateur en parallèle", "Rien d'autre"],
-    answer: 1,
-    explanation: "Sans résistance série, le courant n'est pas limité et la LED grille immédiatement.",
-  },
-  {
-    q: "En série, la résistance équivalente est…",
-    options: ["R1 × R2", "R1 × R2 / (R1+R2)", "R1 + R2", "1/(1/R1 + 1/R2)"],
-    answer: 2,
-    explanation: "En série, les résistances s'additionnent : Req = R1 + R2.",
-  },
-  {
-    q: "Quelle formule donne la puissance dissipée ?",
-    options: ["P = R / I", "P = U + I", "P = U × I", "P = U / R²"],
-    answer: 2,
-    explanation: "P = U × I, aussi écrit P = R × I² ou P = U² / R.",
-  },
-  {
-    q: "La constante de temps d'un circuit RC est…",
-    options: ["τ = R + C", "τ = R / C", "τ = R × C", "τ = C / R"],
-    answer: 2,
-    explanation: "τ = R × C en secondes. À t = τ, le condensateur est chargé à ~63%.",
-  },
-  {
-    q: "Un transistor NPN en saturation se comporte comme…",
-    options: ["Un interrupteur ouvert", "Une résistance élevée", "Un interrupteur fermé", "Une diode"],
-    answer: 2,
-    explanation: "En saturation, le transistor laisse passer le courant : c'est l'état ON (interrupteur fermé).",
-  },
-  {
-    q: "La diode Zener est utilisée pour…",
-    options: ["Amplifier un signal", "Réguler une tension", "Stocker de l'énergie", "Mesurer le courant"],
-    answer: 1,
-    explanation: "La Zener maintient une tension approximativement constante en polarisation inverse.",
-  },
-  {
-    q: "Dans un diviseur de tension, Vout = ?",
-    options: ["Vin × R1/(R1+R2)", "Vin × R2/(R1+R2)", "Vin / (R1 × R2)", "Vin + R2/R1"],
-    answer: 1,
-    explanation: "Vout = Vin × R2 / (R1 + R2). R2 est la résistance en bas (côté GND).",
-  },
-  {
-    q: "La loi des mailles de Kirchhoff dit que…",
-    options: [
-      "La somme des courants entrant = sortant",
-      "La somme des tensions dans une maille = 0",
-      "La résistance totale est toujours minimale",
-      "Le courant est constant dans tout le circuit",
-    ],
-    answer: 1,
-    explanation: "Kirchhoff (mailles) : la somme algébrique des tensions dans une maille fermée vaut 0.",
-  },
-];
+type Phase = "select" | "answering" | "feedback" | "done";
 
-type Phase = "idle" | "answering" | "feedback" | "done";
+function shuffle<T>(arr: T[]): T[] {
+  return [...arr].sort(() => Math.random() - 0.5);
+}
 
 export function Quiz() {
-  const [phase, setPhase] = useState<Phase>("idle");
+  const [phase, setPhase] = useState<Phase>("select");
+  const [category, setCategory] = useState<QuizCategory | null>(null);
+  const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [score, setScore] = useState(0);
   const [animKey, setAnimKey] = useState(0);
+  const [submitted, setSubmitted] = useState(false);
 
-  const question = QUESTIONS[index];
+  const question = questions[index];
   const isCorrect = selected === question?.answer;
-  const progress = ((index) / QUESTIONS.length) * 100;
+  const progress = index / (questions.length || 1);
 
-  const start = () => {
-    setPhase("answering");
+  function startQuiz(cat: QuizCategory) {
+    const qs = cat.id === "mixed"
+      ? shuffle(QUIZ_CATEGORIES.filter(c => c.id !== "mixed").flatMap(c => c.questions)).slice(0, 10)
+      : shuffle(cat.questions).slice(0, 10);
+    setCategory(cat);
+    setQuestions(qs);
     setIndex(0);
     setScore(0);
     setSelected(null);
+    setSubmitted(false);
     setAnimKey((k) => k + 1);
-  };
+    setPhase("answering");
+  }
 
-  const pick = (i: number) => {
+  function pick(i: number) {
     if (phase !== "answering") return;
     setSelected(i);
     setPhase("feedback");
     if (i === question.answer) setScore((s) => s + 1);
-  };
+  }
 
-  const next = () => {
-    if (index + 1 >= QUESTIONS.length) {
+  async function next() {
+    const finalScore = score + (isCorrect ? 1 : 0);
+    if (index + 1 >= questions.length) {
       const pseudo = getPseudo() ?? "Anonyme";
-      upsertLeaderboard({
-        pseudo,
-        score: (score + (isCorrect ? 0 : 0)) * 10,
-        correct: score,
-        total: QUESTIONS.length,
-        date: new Date().toISOString(),
-      });
+      const pct = Math.round((finalScore / questions.length) * 100);
+      if (!submitted) {
+        setSubmitted(true);
+        await submitScore({
+          pseudo,
+          score: pct,
+          correct: finalScore,
+          total: questions.length,
+          category: category?.id ?? "electronics",
+          date: new Date().toISOString(),
+        });
+      }
+      setScore(finalScore);
       setPhase("done");
     } else {
       setIndex((i) => i + 1);
@@ -118,119 +71,145 @@ export function Quiz() {
       setPhase("answering");
       setAnimKey((k) => k + 1);
     }
-  };
+  }
 
-  const grade = () => {
-    const ratio = score / QUESTIONS.length;
-    if (ratio >= 0.9) return { label: "Expert ⚡", color: "text-amber-500" };
-    if (ratio >= 0.7) return { label: "Avancé 🔋", color: "text-green-500" };
-    if (ratio >= 0.5) return { label: "En progrès 📈", color: "text-blue-500" };
-    return { label: "Débutant 🔌", color: "text-slate-500" };
-  };
+  const grade = useMemo(() => {
+    const ratio = score / (questions.length || 1);
+    if (ratio >= 0.9) return { label: "Expert ⚡", color: "text-amber-400" };
+    if (ratio >= 0.7) return { label: "Avancé 🔋", color: "text-green-400" };
+    if (ratio >= 0.5) return { label: "En progrès 📈", color: "text-blue-400" };
+    return { label: "Débutant 🔌", color: "text-slate-400" };
+  }, [score, questions.length]);
 
-  if (phase === "idle") {
+  // ── Category selection ─────────────────────────────────────────────────────
+  if (phase === "select") {
     return (
-      <div className="card flex flex-col items-center gap-5 py-12 text-center">
-        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-violet-500 text-3xl text-white shadow-glow">
-          ⚡
+      <div className="space-y-5">
+        <div className="text-center space-y-2">
+          <h2 className="text-2xl font-bold text-white">Choisir un quiz</h2>
+          <p className="text-white/40 text-sm">10 questions · Score enregistré dans le classement global</p>
         </div>
-        <div>
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Quiz Électronique</h2>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            10 questions · Résultats dans le classement
-          </p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {QUIZ_CATEGORIES.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => startQuiz(cat)}
+              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 p-5 text-left transition-all hover:border-white/20 hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <div className={`absolute inset-0 opacity-0 group-hover:opacity-10 bg-gradient-to-br ${cat.color} transition-opacity`} />
+              <div className="flex items-center gap-3 mb-2">
+                <span className="text-3xl">{cat.emoji}</span>
+                <div>
+                  <p className="text-white font-semibold">{cat.label}</p>
+                  <p className="text-white/40 text-xs">
+                    {cat.id === "mixed" ? "Toutes catégories mélangées" : `${cat.questions.length} questions disponibles`}
+                  </p>
+                </div>
+                <ChevronRight size={16} className="ml-auto text-white/20 group-hover:text-white/60 transition-colors" />
+              </div>
+              <div className={`h-1 w-12 rounded-full bg-gradient-to-r ${cat.color} opacity-60`} />
+            </button>
+          ))}
         </div>
-        <button
-          type="button"
-          onClick={start}
-          className="rounded-xl bg-brand-600 px-8 py-3 font-semibold text-white transition hover:bg-brand-500 active:scale-95"
-        >
-          Lancer le quiz
-        </button>
       </div>
     );
   }
 
+  // ── Done ───────────────────────────────────────────────────────────────────
   if (phase === "done") {
-    const g = grade();
+    const pct = Math.round((score / questions.length) * 100);
     return (
-      <div className="card animate-scale-in flex flex-col items-center gap-6 py-10 text-center">
-        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-brand-500 to-violet-500 text-4xl shadow-glow">
+      <div className="rounded-2xl border border-white/10 bg-[#0d0d1f] p-8 flex flex-col items-center gap-6 text-center">
+        <div className={`w-20 h-20 rounded-full bg-gradient-to-br ${category?.color} flex items-center justify-center text-4xl shadow-lg`}>
           🎯
         </div>
         <div>
-          <p className="text-5xl font-extrabold text-slate-900 dark:text-slate-100">
-            {score}/{QUESTIONS.length}
+          <p className="text-5xl font-extrabold text-white mb-1">
+            {score}/{questions.length}
           </p>
-          <p className={`mt-2 text-lg font-semibold ${g.color}`}>{g.label}</p>
+          <p className="text-white/50 text-sm mb-2">{pct}% de réussite</p>
+          <p className={`text-lg font-semibold ${grade.color}`}>{grade.label}</p>
         </div>
-        <div className="w-full max-w-xs space-y-1">
-          <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400">
-            <span>Réussite</span>
-            <span>{Math.round((score / QUESTIONS.length) * 100)}%</span>
-          </div>
-          <div className="h-3 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+
+        <div className="w-full max-w-xs">
+          <div className="h-3 w-full overflow-hidden rounded-full bg-white/10">
             <div
-              className="progress-bar h-full rounded-full bg-gradient-to-r from-brand-500 to-violet-500"
-              style={{ width: `${(score / QUESTIONS.length) * 100}%` }}
+              className={`h-full rounded-full bg-gradient-to-r ${category?.color} transition-all duration-1000`}
+              style={{ width: `${pct}%` }}
             />
           </div>
         </div>
-        <p className="text-sm text-slate-500 dark:text-slate-400">Score enregistré dans le classement.</p>
-        <button
-          type="button"
-          onClick={start}
-          className="rounded-xl border border-slate-300 px-6 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
-        >
-          Rejouer
-        </button>
+
+        <div className="flex items-center gap-2 text-sm text-white/50">
+          <Trophy size={14} className="text-amber-400" />
+          Score de {pct} pts enregistré dans le classement {submitted ? "global 🌍" : "local"}
+        </div>
+
+        <div className="flex gap-3 flex-wrap justify-center">
+          <button
+            onClick={() => startQuiz(category!)}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white text-sm font-medium transition-colors"
+          >
+            <RotateCcw size={14} />
+            Rejouer
+          </button>
+          <button
+            onClick={() => setPhase("select")}
+            className={`px-5 py-2.5 rounded-xl bg-gradient-to-r ${category?.color} text-white text-sm font-medium transition-all hover:opacity-90`}
+          >
+            Changer de catégorie
+          </button>
+        </div>
       </div>
     );
   }
 
+  // ── Question ───────────────────────────────────────────────────────────────
   return (
-    <div className="card space-y-5">
-      {/* Barre de progression */}
-      <div className="space-y-1.5">
-        <div className="flex justify-between text-xs font-medium">
-          <span className="text-slate-500 dark:text-slate-400">Question {index + 1}/{QUESTIONS.length}</span>
-          <span className="text-brand-600 dark:text-brand-400">{score} bonne{score > 1 ? "s" : ""}</span>
+    <div className="rounded-2xl border border-white/10 bg-[#0d0d1f] p-5 space-y-5">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span>{category?.emoji}</span>
+          <span className="text-white/40 text-xs font-medium uppercase tracking-wider">{category?.label}</span>
         </div>
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
-          <div
-            className="progress-bar h-full rounded-full bg-gradient-to-r from-brand-500 to-violet-500"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
+        <span className="text-white/40 text-xs">{score} bonne{score > 1 ? "s" : ""} / {index} posée{index > 1 ? "s" : ""}</span>
       </div>
 
+      {/* Progress bar */}
+      <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+        <div
+          className={`h-full rounded-full bg-gradient-to-r ${category?.color} transition-all duration-300`}
+          style={{ width: `${progress * 100}%` }}
+        />
+      </div>
+
+      <p className="text-xs text-white/30 font-medium">Question {index + 1} / {questions.length}</p>
+
       {/* Question */}
-      <p key={`q-${animKey}`} className="animate-fade-up text-lg font-semibold leading-snug text-slate-900 dark:text-slate-100">
-        {question.q}
+      <p key={`q-${animKey}`} className="text-lg font-semibold text-white leading-snug">
+        {question?.q}
       </p>
 
       {/* Options */}
-      <div key={`opts-${animKey}`} className="animate-fade-up grid gap-2 sm:grid-cols-2">
-        {question.options.map((option, i) => {
-          let style =
-            "rounded-xl border px-4 py-3 text-left text-sm font-medium transition text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-brand-400 hover:bg-brand-50/60 dark:hover:bg-slate-800 dark:hover:border-brand-600";
+      <div key={`opts-${animKey}`} className="grid gap-2 sm:grid-cols-2">
+        {question?.options.map((option, i) => {
+          let cls = "rounded-xl border px-4 py-3 text-left text-sm font-medium transition-all text-white/70 border-white/10 hover:border-white/30 hover:text-white hover:bg-white/5";
 
           if (phase === "feedback") {
             if (i === question.answer) {
-              style =
-                "rounded-xl border px-4 py-3 text-left text-sm font-medium border-green-400 bg-green-50 text-green-800 dark:border-green-600 dark:bg-green-950/60 dark:text-green-300 animate-pop";
+              cls = "rounded-xl border px-4 py-3 text-left text-sm font-medium border-emerald-500/60 bg-emerald-900/20 text-emerald-300";
             } else if (i === selected) {
-              style =
-                "rounded-xl border px-4 py-3 text-left text-sm font-medium border-red-400 bg-red-50 text-red-800 dark:border-red-600 dark:bg-red-950/60 dark:text-red-300 animate-shake";
+              cls = "rounded-xl border px-4 py-3 text-left text-sm font-medium border-red-500/40 bg-red-900/10 text-red-400";
             } else {
-              style =
-                "rounded-xl border px-4 py-3 text-left text-sm font-medium text-slate-400 border-slate-200 dark:border-slate-700 dark:text-slate-600 opacity-50";
+              cls = "rounded-xl border px-4 py-3 text-left text-sm font-medium text-white/20 border-white/5 opacity-50";
             }
           }
 
           return (
-            <button key={option} type="button" className={style} onClick={() => pick(i)}>
-              <span className="mr-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-600 dark:bg-slate-700 dark:text-slate-300">
+            <button key={option} type="button" className={cls} onClick={() => pick(i)}>
+              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/10 text-xs font-bold text-white/50 mr-2">
                 {String.fromCharCode(65 + i)}
               </span>
               {option}
@@ -241,19 +220,13 @@ export function Quiz() {
 
       {/* Feedback */}
       {phase === "feedback" && (
-        <div
-          className={`animate-fade-up flex items-start gap-3 rounded-xl p-4 text-sm ${
-            isCorrect
-              ? "bg-green-50 text-green-800 dark:bg-green-950 dark:text-green-200"
-              : "bg-red-50 text-red-800 dark:bg-red-950 dark:text-red-200"
-          }`}
-        >
-          {isCorrect ? (
-            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
-          ) : (
-            <XCircle className="mt-0.5 h-4 w-4 shrink-0" />
-          )}
-          <span>{question.explanation}</span>
+        <div className={`flex items-start gap-3 rounded-xl p-4 text-sm ${
+          isCorrect ? "bg-emerald-900/20 border border-emerald-700/30 text-emerald-300" : "bg-red-900/10 border border-red-700/20 text-red-300"
+        }`}>
+          {isCorrect
+            ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+            : <XCircle className="mt-0.5 h-4 w-4 shrink-0" />}
+          <span>{question?.explanation}</span>
         </div>
       )}
 
@@ -261,9 +234,9 @@ export function Quiz() {
         <button
           type="button"
           onClick={next}
-          className="w-full rounded-xl bg-brand-600 py-3 text-sm font-semibold text-white transition hover:bg-brand-500"
+          className={`w-full rounded-xl py-3 text-sm font-semibold text-white transition-all bg-gradient-to-r ${category?.color} hover:opacity-90 active:scale-[0.98]`}
         >
-          {index + 1 < QUESTIONS.length ? "Question suivante →" : "Voir mes résultats"}
+          {index + 1 < questions.length ? "Question suivante →" : "Voir mes résultats"}
         </button>
       )}
     </div>

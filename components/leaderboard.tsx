@@ -1,73 +1,162 @@
 "use client";
 
-import { getLeaderboard, LeaderboardEntry } from "@/lib/leaderboard";
+import { fetchLeaderboard, LeaderboardEntry } from "@/lib/leaderboard";
 import { getPseudo } from "@/lib/user";
-import { Trophy } from "lucide-react";
+import { Trophy, Globe, HardDrive, RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
+import { QUIZ_CATEGORIES } from "@/lib/quiz-questions";
 
 const medals = ["🥇", "🥈", "🥉"];
+
+const CATEGORY_COLORS: Record<string, string> = {
+  electronics: "text-violet-400",
+  maintenance: "text-orange-400",
+  fabrication: "text-green-400",
+  math: "text-blue-400",
+  mixed: "text-pink-400",
+};
+
+const CATEGORY_EMOJIS: Record<string, string> = {
+  electronics: "⚡",
+  maintenance: "🔧",
+  fabrication: "🏭",
+  math: "∂",
+  mixed: "🎯",
+};
 
 export function Leaderboard() {
   const [board, setBoard] = useState<LeaderboardEntry[]>([]);
   const [me, setMe] = useState<string | null>(null);
+  const [shared, setShared] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<string>("all");
 
-  useEffect(() => {
-    setBoard(getLeaderboard());
+  async function load() {
+    setLoading(true);
+    const { entries, shared: s } = await fetchLeaderboard();
+    setBoard(entries);
+    setShared(s);
     setMe(getPseudo());
-  }, []);
-
-  if (board.length === 0) {
-    return (
-      <div className="card flex flex-col items-center gap-3 py-12 text-center">
-        <Trophy className="h-10 w-10 text-slate-300 dark:text-slate-600" />
-        <p className="font-semibold">Aucun score enregistré</p>
-        <p className="text-sm text-slate-500">Complète un quiz pour apparaître ici.</p>
-      </div>
-    );
+    setLoading(false);
   }
 
+  useEffect(() => { load(); }, []);
+
+  const categories = ["all", ...QUIZ_CATEGORIES.map((c) => c.id)];
+
+  const filtered = filter === "all"
+    ? board
+    : board.filter((e) => e.category === filter);
+
+  const sorted = [...filtered].sort((a, b) => b.score - a.score).slice(0, 20);
+
   return (
-    <div className="card space-y-3">
-      <div className="flex items-center gap-2">
-        <Trophy className="h-5 w-5 text-amber-500" />
-        <h2 className="text-xl font-bold">Classement</h2>
+    <div className="rounded-2xl border border-white/10 bg-[#0d0d1f] p-5 space-y-4">
+      {/* Header */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="flex items-center gap-2">
+          <Trophy className="text-amber-400" size={20} />
+          <h2 className="text-xl font-bold text-white">Classement</h2>
+          <span className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border ${
+            shared
+              ? "border-green-700/40 bg-green-900/20 text-green-400"
+              : "border-white/10 bg-white/5 text-white/40"
+          }`}>
+            {shared ? <><Globe size={10} /> Global</> : <><HardDrive size={10} /> Local</>}
+          </span>
+        </div>
+        <button
+          onClick={load}
+          disabled={loading}
+          className="text-white/30 hover:text-white/60 transition-colors"
+          title="Rafraîchir"
+        >
+          <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
+        </button>
       </div>
 
-      <div className="space-y-2">
-        {board.map((entry, i) => {
-          const isMe = entry.pseudo === me;
+      {!shared && (
+        <div className="p-3 rounded-xl bg-amber-900/20 border border-amber-700/30 text-amber-300 text-xs">
+          💡 Scores visibles uniquement sur cet appareil. Pour un classement partagé entre tous les joueurs,
+          configure <code className="bg-black/30 px-1 rounded">UPSTASH_REDIS_REST_URL</code> et{" "}
+          <code className="bg-black/30 px-1 rounded">UPSTASH_REDIS_REST_TOKEN</code> sur Vercel
+          (gratuit sur <a href="https://upstash.com" target="_blank" rel="noreferrer" className="underline">upstash.com</a>).
+        </div>
+      )}
+
+      {/* Category filter */}
+      <div className="flex gap-1.5 flex-wrap">
+        {categories.map((cat) => {
+          const catObj = QUIZ_CATEGORIES.find((c) => c.id === cat);
           return (
-            <div
-              key={`${entry.pseudo}-${i}`}
-              className={`flex items-center gap-3 rounded-xl px-4 py-3 transition ${
-                isMe
-                  ? "border border-brand-300 bg-brand-50 dark:border-brand-700 dark:bg-brand-950"
-                  : "bg-slate-50 dark:bg-slate-800"
+            <button
+              key={cat}
+              onClick={() => setFilter(cat)}
+              className={`px-3 py-1 rounded-lg text-xs font-medium border transition-all ${
+                filter === cat
+                  ? "border-violet-500 bg-violet-900/30 text-violet-300"
+                  : "border-white/10 text-white/40 hover:text-white hover:border-white/20"
               }`}
             >
-              <span className="w-6 text-center text-lg">
-                {medals[i] ?? `${i + 1}`}
-              </span>
-              <div className="flex-1 min-w-0">
-                <p className="truncate font-semibold text-slate-900 dark:text-slate-100">
-                  {entry.pseudo}
-                  {isMe && (
-                    <span className="ml-2 text-xs font-normal text-brand-500 dark:text-brand-400">
-                      (toi)
-                    </span>
-                  )}
-                </p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  {entry.correct}/{entry.total} bonnes réponses
-                </p>
-              </div>
-              <span className="shrink-0 text-lg font-bold text-slate-700 dark:text-slate-200">
-                {entry.score} pts
-              </span>
-            </div>
+              {cat === "all" ? "🏆 Tous" : `${catObj?.emoji ?? ""} ${catObj?.label ?? cat}`}
+            </button>
           );
         })}
       </div>
+
+      {/* Board */}
+      {loading ? (
+        <div className="py-8 text-center text-white/30 text-sm flex flex-col items-center gap-2">
+          <RefreshCw size={20} className="animate-spin" />
+          Chargement…
+        </div>
+      ) : sorted.length === 0 ? (
+        <div className="py-10 text-center space-y-2">
+          <Trophy className="mx-auto text-white/10" size={40} />
+          <p className="text-white/40 font-semibold">Aucun score encore</p>
+          <p className="text-white/20 text-sm">Complète un quiz pour apparaître ici !</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {sorted.map((entry, i) => {
+            const isMe = entry.pseudo === me;
+            const emoji = CATEGORY_EMOJIS[entry.category] ?? "❓";
+            const color = CATEGORY_COLORS[entry.category] ?? "text-white/40";
+
+            return (
+              <div
+                key={`${entry.pseudo}-${entry.category}-${i}`}
+                className={`flex items-center gap-3 rounded-xl px-4 py-3 transition-all ${
+                  isMe
+                    ? "border border-violet-500/40 bg-violet-900/15"
+                    : "bg-white/3 hover:bg-white/5"
+                }`}
+              >
+                <span className="w-6 text-center text-lg shrink-0">
+                  {medals[i] ?? <span className="text-white/30 text-sm font-bold">{i + 1}</span>}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="truncate font-semibold text-white text-sm">
+                    {entry.pseudo}
+                    {isMe && (
+                      <span className="ml-2 text-xs font-normal text-violet-400">(toi)</span>
+                    )}
+                  </p>
+                  <p className={`text-xs ${color} flex items-center gap-1`}>
+                    {emoji} {QUIZ_CATEGORIES.find((c) => c.id === entry.category)?.label ?? entry.category}
+                    <span className="text-white/20 mx-1">·</span>
+                    <span className="text-white/30">{entry.correct}/{entry.total} bonnes réponses</span>
+                  </p>
+                </div>
+                <div className="text-right shrink-0">
+                  <span className="text-lg font-bold text-white">{entry.score}</span>
+                  <span className="text-white/30 text-xs"> pts</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

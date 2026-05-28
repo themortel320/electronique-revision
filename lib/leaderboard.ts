@@ -1,35 +1,66 @@
 "use client";
 
-const KEY = "elec-leaderboard-v1";
+const LOCAL_KEY = "elec-leaderboard-v2";
 
 export type LeaderboardEntry = {
   pseudo: string;
   score: number;
   correct: number;
   total: number;
+  category: string;
   date: string;
 };
 
-export function getLeaderboard(): LeaderboardEntry[] {
+// ─── Local storage (fallback / offline) ───────────────────────────────────────
+
+export function getLocalLeaderboard(): LeaderboardEntry[] {
   if (typeof window === "undefined") return [];
   try {
-    return JSON.parse(window.localStorage.getItem(KEY) ?? "[]") as LeaderboardEntry[];
+    return JSON.parse(window.localStorage.getItem(LOCAL_KEY) ?? "[]") as LeaderboardEntry[];
   } catch {
     return [];
   }
 }
 
-export function upsertLeaderboard(entry: LeaderboardEntry): void {
-  const board = getLeaderboard();
-  const idx = board.findIndex((e) => e.pseudo === entry.pseudo);
+function saveLocal(entry: LeaderboardEntry) {
+  const board = getLocalLeaderboard();
+  const idx = board.findIndex((e) => e.pseudo === entry.pseudo && e.category === entry.category);
   if (idx >= 0) {
-    // Keep best score per pseudo
-    if (entry.score > board[idx].score) {
-      board[idx] = entry;
-    }
+    if (entry.score > board[idx].score) board[idx] = entry;
   } else {
     board.push(entry);
   }
   board.sort((a, b) => b.score - a.score);
-  window.localStorage.setItem(KEY, JSON.stringify(board.slice(0, 20)));
+  window.localStorage.setItem(LOCAL_KEY, JSON.stringify(board.slice(0, 50)));
+}
+
+// ─── API (global shared) ──────────────────────────────────────────────────────
+
+export async function fetchLeaderboard(): Promise<{ entries: LeaderboardEntry[]; shared: boolean }> {
+  try {
+    const res = await fetch("/api/leaderboard", { next: { revalidate: 30 } });
+    const data = await res.json();
+    if (data.source === "redis" && data.entries.length > 0) {
+      return { entries: data.entries as LeaderboardEntry[], shared: true };
+    }
+  } catch {
+    // network error → fall back to local
+  }
+  return { entries: getLocalLeaderboard(), shared: false };
+}
+
+export async function submitScore(entry: LeaderboardEntry): Promise<void> {
+  // Always save locally
+  saveLocal(entry);
+
+  // Try to share globally
+  try {
+    await fetch("/api/leaderboard", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(entry),
+    });
+  } catch {
+    // silently fail — score is saved locally
+  }
 }
