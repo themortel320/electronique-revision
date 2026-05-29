@@ -42,6 +42,18 @@ const CATEGORY_LABELS: Record<string, string> = {
   "diagnostic-expert": "Diagnostic Expert",
 };
 
+/** In "all" view, keep only each player's best score across categories. */
+function bestPerPseudo(entries: LeaderboardEntry[]): LeaderboardEntry[] {
+  const best = new Map<string, LeaderboardEntry>();
+  for (const e of entries) {
+    const prev = best.get(e.pseudo);
+    if (!prev || e.score > prev.score || (e.score === prev.score && e.date > prev.date)) {
+      best.set(e.pseudo, e);
+    }
+  }
+  return [...best.values()];
+}
+
 export function Leaderboard() {
   const [board, setBoard] = useState<LeaderboardEntry[]>([]);
   const [me, setMe] = useState<string | null>(null);
@@ -83,7 +95,7 @@ export function Leaderboard() {
   const categories = ["all", ...QUIZ_CATEGORIES.map((c) => c.id), ...allCats.filter(c => !QUIZ_CATEGORIES.find(q => q.id === c))];
 
   const filtered = filter === "all"
-    ? board
+    ? bestPerPseudo(board)
     : board.filter((e) => e.category === filter);
 
   const sorted = [...filtered].sort((a, b) => b.score - a.score).slice(0, 20);

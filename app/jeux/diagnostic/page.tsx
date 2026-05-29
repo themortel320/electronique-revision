@@ -911,13 +911,14 @@ export default function DiagnosticGame() {
     const base = (ev.fault_score ?? 0) + (ev.component_score ?? 0) + (ev.repair_score ?? 0);
     const finalScore = Math.round(base * cfg.mult);
     const pct = Math.round((finalScore / cfg.max) * 100);
+    const partsCorrect = [ev.fault_correct, ev.component_correct, ev.repair_correct].filter(Boolean).length;
     const pseudo = getPseudo();
     if (pseudo) {
       await submitScore({
         pseudo,
         score: Math.min(100, pct),
-        correct: Math.round(base),
-        total: 30,
+        correct: partsCorrect,
+        total: 3,
         category: `diagnostic-${diff}`,
         date: new Date().toISOString(),
       });
