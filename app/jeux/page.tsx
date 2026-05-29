@@ -1,8 +1,12 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import { ArrowLeft, Flame, RotateCcw, CheckCircle, XCircle } from "lucide-react";
+import { useXP } from "@/components/xp-bar";
+import { XP_REWARDS } from "@/lib/xp";
+import { submitScore } from "@/lib/leaderboard";
+import { getPseudo } from "@/lib/user";
 
 // ── Color data ────────────────────────────────────────────────────────────────
 const DIGIT_COLORS = [
@@ -424,11 +428,14 @@ function EncodeMode({ onCorrect, onWrong }: { onCorrect: () => void; onWrong: ()
 export default function JeuxPage() {
   const [tab, setTab] = useState<"decode"|"encode"|"table">("decode");
   const [expertMode, setExpertMode] = useState(false);
+  const { gainXP, toastEl, levelUpEl } = useXP();
 
   const [score,  setScore]  = useState(0);
   const [streak, setStreak] = useState(0);
   const [best,   setBest]   = useState(0);
   const [total,  setTotal]  = useState(0);
+  const [correct, setCorrect] = useState(0);
+  const lbRef = useRef({ total: 0, correct: 0 });
 
   // Decode state
   const [q,        setQ]        = useState<Q>(makeQuestion);
@@ -436,16 +443,32 @@ export default function JeuxPage() {
   const [answered, setAnswered] = useState(false);
 
   const onCorrect = useCallback(() => {
-    const combo = Math.min(streak + 1, 5);
+    const newStreak = streak + 1;
+    const combo = Math.min(newStreak, 5);
     const pts = 10 * combo;
     setScore(s => { const n = s + pts; setBest(b => Math.max(b, n)); return n; });
-    setStreak(s => s + 1);
+    setStreak(newStreak);
     setTotal(t => t + 1);
-  }, [streak]);
+    setCorrect(c => c + 1);
+    lbRef.current.total += 1;
+    lbRef.current.correct += 1;
+    gainXP(XP_REWARDS.resistorCorrect);
+    if (newStreak === 5) gainXP(XP_REWARDS.resistorStreak5);
+    // Submit to leaderboard every 10 questions
+    const { total: nt, correct: nc } = lbRef.current;
+    if (nt > 0 && nt % 10 === 0) {
+      const pseudo = getPseudo();
+      if (pseudo) {
+        const acc = Math.round((nc / nt) * 100);
+        submitScore({ pseudo, score: acc, correct: nc, total: nt, category: "resistor", date: new Date().toISOString() });
+      }
+    }
+  }, [streak, gainXP]);
 
   const onWrong = useCallback(() => {
     setStreak(0);
     setTotal(t => t + 1);
+    lbRef.current.total += 1;
   }, []);
 
   function answer(opt: string) {
@@ -462,7 +485,8 @@ export default function JeuxPage() {
   }
 
   function reset() {
-    setScore(0); setStreak(0); setTotal(0);
+    setScore(0); setStreak(0); setTotal(0); setCorrect(0);
+    lbRef.current = { total: 0, correct: 0 };
     setQ(makeQuestion()); setChosen(null); setAnswered(false);
   }
 
@@ -475,6 +499,8 @@ export default function JeuxPage() {
   ];
 
   return (
+    <>
+    {toastEl}{levelUpEl}
     <div className="max-w-xl mx-auto px-4 py-10 space-y-6">
       {/* Header */}
       <header>
@@ -608,5 +634,6 @@ export default function JeuxPage() {
       {/* ── TABLE ── */}
       {tab === "table" && <ColorTable />}
     </div>
+    </>
   );
 }

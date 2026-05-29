@@ -13,13 +13,6 @@
   --card: 13 13 31;
 }
 
-/* Light mode overrides */
-html:not(.dark) {
-  color-scheme: light;
-  --glow: 124 58 237;
-  --bg:   245 243 255;
-  --card: 255 255 255;
-}
 
 html { scroll-behavior: smooth; }
 
@@ -30,75 +23,13 @@ body {
   background-attachment: fixed;
 }
 
-/* ── Light mode body ── */
-html:not(.dark) body {
-  @apply bg-violet-50 text-slate-900;
-  background-image:
-    radial-gradient(ellipse 80% 40% at 20% -10%, rgba(167,139,250,0.18) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 40% at 80% 110%, rgba(96,165,250,0.14) 0%, transparent 60%);
-}
 
-/* ── Light mode components ── */
-html:not(.dark) .card,
-html:not(.dark) [class*="bg-\\[#0d0d1f\\]"],
-html:not(.dark) [class*="bg-\\[#0f0f1a\\]"] {
-  background-color: white !important;
-  border-color: rgba(139,92,246,0.15) !important;
-  color: #1e1b4b;
-}
-
-html:not(.dark) [class*="text-white\\/"] {
-  color: #374151 !important;
-}
-html:not(.dark) [class*="border-white\\/"] {
-  border-color: rgba(139,92,246,0.2) !important;
-}
-html:not(.dark) [class*="bg-white\\/"] {
-  background-color: rgba(139,92,246,0.06) !important;
-}
-
-/* Light mode navbar */
-html:not(.dark) header {
-  background-color: rgba(255,255,255,0.92) !important;
-  border-bottom-color: rgba(139,92,246,0.15) !important;
-  backdrop-filter: blur(16px);
-}
-html:not(.dark) header a,
-html:not(.dark) header button,
-html:not(.dark) header span {
-  color: #4c1d95 !important;
-}
-html:not(.dark) header a:hover {
-  background-color: rgba(139,92,246,0.1) !important;
-}
-
-/* Light mode cards */
-html:not(.dark) article,
-html:not(.dark) .rounded-2xl {
-  --tw-shadow: 0 2px 16px 0 rgba(124,58,237,0.06);
-}
-
-/* ═══════════════════════════════════════════════════════
-   SMOOTH TRANSITION on theme toggle only
-   ═══════════════════════════════════════════════════════ */
-.theme-transitioning *,
-.theme-transitioning *::before,
-.theme-transitioning *::after {
-  transition:
-    color 0.35s ease,
-    background-color 0.45s ease,
-    border-color 0.35s ease,
-    box-shadow 0.35s ease !important;
-}
 
 /* ═══════════════════════════════════════════════════════
    CARD
    ═══════════════════════════════════════════════════════ */
 .card {
   @apply rounded-2xl border border-white/10 bg-[#0d0d1f] p-5;
-}
-html:not(.dark) .card {
-  @apply border-violet-200/50 bg-white shadow-sm shadow-violet-100;
 }
 
 .card-glow {
@@ -292,8 +223,4 @@ html:not(.dark) .card {
   background: rgba(255,255,255,0.04);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(255,255,255,0.08);
-}
-html:not(.dark) .glass {
-  background: rgba(255,255,255,0.7);
-  border-color: rgba(139,92,246,0.2);
 }

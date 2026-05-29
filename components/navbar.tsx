@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Moon, Sun, Trophy, Zap, ChevronDown, Menu, X,
-  BookOpen, FlaskConical, Wrench, Globe,
+  Trophy, Zap, ChevronDown, Menu, X,
+  FlaskConical, Wrench, Globe,
   Target, ClipboardList, ClipboardCheck,
   BarChart2, Brain, CalendarDays, Gamepad2,
 } from "lucide-react";
@@ -12,6 +12,7 @@ import { useEffect, useRef, useState } from "react";
 import { getPseudo } from "@/lib/user";
 import { loadStreak } from "@/lib/progress";
 import { MiniCalculator } from "./mini-calculator";
+import { NavXPBar } from "./xp-bar";
 
 // ── Category definitions ──────────────────────────────────────────────────────
 type NavItem = { href: string; label: string; desc: string; icon: React.ReactNode };
@@ -118,7 +119,6 @@ function NavDropdown({ id, label, emoji, color, items, pathname }: {
 
 // ── Main Navbar ───────────────────────────────────────────────────────────────
 export function Navbar() {
-  const [dark, setDark] = useState(false);
   const [pseudo, setPseudo] = useState<string | null>(null);
   const [streak, setStreak] = useState(0);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -126,23 +126,11 @@ export function Navbar() {
   const pathname = usePathname();
 
   useEffect(() => {
-    const isDark = window.localStorage.getItem("theme") === "dark";
-    setDark(isDark);
-    document.documentElement.classList.toggle("dark", isDark);
     setPseudo(getPseudo());
     setStreak(loadStreak().current);
   }, []);
 
   useEffect(() => { setMobileOpen(false); setMobileExpanded(null); }, [pathname]);
-
-  const toggle = () => {
-    document.documentElement.classList.add("theme-transitioning");
-    setTimeout(() => document.documentElement.classList.remove("theme-transitioning"), 500);
-    const next = !dark;
-    setDark(next);
-    document.documentElement.classList.toggle("dark", next);
-    window.localStorage.setItem("theme", next ? "dark" : "light");
-  };
 
   return (
     <header className="sticky top-0 z-30 border-b border-white/8 bg-[#070d1f]/95 backdrop-blur-md">
@@ -190,14 +178,8 @@ export function Navbar() {
               {pseudo}
             </span>
           )}
+          <NavXPBar />
           <MiniCalculator />
-          <button
-            onClick={toggle}
-            className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 text-white/50 transition hover:bg-white/8 hover:text-white shrink-0"
-            aria-label="Changer le thème"
-          >
-            {dark ? <Sun size={15} /> : <Moon size={15} />}
-          </button>
           <button
             onClick={() => setMobileOpen((v) => !v)}
             className="lg:hidden flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 text-white/50 hover:text-white hover:bg-white/8 shrink-0"

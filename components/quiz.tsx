@@ -6,6 +6,8 @@ import { saveQuizSession } from "@/lib/quiz-history";
 import { CheckCircle2, XCircle, Trophy, RotateCcw, ChevronRight, Loader2, User, BookOpen, ChevronDown, Pencil, Share2, AlertCircle } from "lucide-react";
 import { useState, useMemo, useEffect, useRef } from "react";
 import { QUIZ_CATEGORIES, QuizCategory, QuizQuestion } from "@/lib/quiz-questions";
+import { useXP } from "./xp-bar";
+import { XP_REWARDS } from "@/lib/xp";
 
 type Phase = "setup" | "select" | "answering" | "feedback" | "done";
 
@@ -14,6 +16,7 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 export function Quiz() {
+  const { gainXP, toastEl, levelUpEl } = useXP();
   const [phase, setPhase] = useState<Phase>("setup");
   const [pseudoState, setPseudoState] = useState("");
   const [pseudoInput, setPseudoInput] = useState("");
@@ -112,6 +115,7 @@ export function Quiz() {
     const correct = i === question.answer;
     if (correct) {
       setScore((s) => s + 1);
+      gainXP(XP_REWARDS.quizCorrect);
     } else {
       wrongLog.current.push({
         q: question.q,
@@ -147,6 +151,9 @@ export function Quiz() {
           total: questions.length,
           wrongQuestions: wrongLog.current,
         });
+        // XP bonus for completing quiz
+        const bonus = finalScore === questions.length ? XP_REWARDS.quizPerfect : XP_REWARDS.quizComplete;
+        gainXP(bonus);
       }
       setScore(finalScore);
       setPhase("done");
@@ -301,6 +308,8 @@ export function Quiz() {
     }
 
     return (
+      <>
+      {toastEl}{levelUpEl}
       <div className="rounded-2xl border border-white/10 bg-[#0d0d1f] p-8 flex flex-col items-center gap-6 text-center">
         <div className={`w-20 h-20 rounded-full bg-gradient-to-br ${category?.color} flex items-center justify-center text-4xl shadow-lg`}>
           🎯
@@ -369,6 +378,7 @@ export function Quiz() {
           </button>
         </div>
       </div>
+      </>
     );
   }
 
@@ -376,6 +386,8 @@ export function Quiz() {
   const cheatSheet = category?.cheatSheet;
 
   return (
+    <>
+    {toastEl}{levelUpEl}
     <div className="rounded-2xl border border-white/10 bg-[#0d0d1f] p-5 space-y-5">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -482,5 +494,6 @@ export function Quiz() {
         </button>
       )}
     </div>
+    </>
   );
 }

@@ -14,6 +14,11 @@ const CATEGORY_COLORS: Record<string, string> = {
   fabrication: "text-green-400",
   math: "text-blue-400",
   mixed: "text-pink-400",
+  resistor: "text-amber-400",
+  "diagnostic-easy":   "text-emerald-400",
+  "diagnostic-medium": "text-yellow-400",
+  "diagnostic-hard":   "text-orange-400",
+  "diagnostic-expert": "text-red-400",
 };
 
 const CATEGORY_EMOJIS: Record<string, string> = {
@@ -22,6 +27,19 @@ const CATEGORY_EMOJIS: Record<string, string> = {
   fabrication: "🏭",
   math: "∂",
   mixed: "🎯",
+  resistor: "🎨",
+  "diagnostic-easy":   "🔌",
+  "diagnostic-medium": "🔌",
+  "diagnostic-hard":   "🔌",
+  "diagnostic-expert": "🔌",
+};
+
+const CATEGORY_LABELS: Record<string, string> = {
+  resistor: "Code couleur",
+  "diagnostic-easy":   "Diagnostic Facile",
+  "diagnostic-medium": "Diagnostic Moyen",
+  "diagnostic-hard":   "Diagnostic Difficile",
+  "diagnostic-expert": "Diagnostic Expert",
 };
 
 export function Leaderboard() {
@@ -61,7 +79,8 @@ export function Leaderboard() {
     return () => clearInterval(id);
   }, [resetDate]);
 
-  const categories = ["all", ...QUIZ_CATEGORIES.map((c) => c.id)];
+  const allCats = board.map(e => e.category).filter((v, i, a) => a.indexOf(v) === i);
+  const categories = ["all", ...QUIZ_CATEGORIES.map((c) => c.id), ...allCats.filter(c => !QUIZ_CATEGORIES.find(q => q.id === c))];
 
   const filtered = filter === "all"
     ? board
@@ -125,7 +144,7 @@ export function Leaderboard() {
                   : "border-white/10 text-white/40 hover:text-white hover:border-white/20"
               }`}
             >
-              {cat === "all" ? "🏆 Tous" : `${catObj?.emoji ?? ""} ${catObj?.label ?? cat}`}
+              {cat === "all" ? "🏆 Tous" : `${catObj?.emoji ?? CATEGORY_EMOJIS[cat] ?? ""} ${catObj?.label ?? CATEGORY_LABELS[cat] ?? cat}`}
             </button>
           );
         })}
@@ -170,7 +189,7 @@ export function Leaderboard() {
                     )}
                   </p>
                   <p className={`text-xs ${color} flex items-center gap-1`}>
-                    {emoji} {QUIZ_CATEGORIES.find((c) => c.id === entry.category)?.label ?? entry.category}
+                    {emoji} {QUIZ_CATEGORIES.find((c) => c.id === entry.category)?.label ?? CATEGORY_LABELS[entry.category] ?? entry.category}
                     <span className="text-white/20 mx-1">·</span>
                     <span className="text-white/30">{entry.correct}/{entry.total} bonnes réponses</span>
                   </p>

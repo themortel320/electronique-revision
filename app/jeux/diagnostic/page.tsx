@@ -6,6 +6,10 @@ import {
   ArrowLeft, Send, ChevronRight, RotateCcw,
   Star, AlertCircle, CheckCircle2, XCircle,
 } from "lucide-react";
+import { useXP } from "@/components/xp-bar";
+import { XP_REWARDS } from "@/lib/xp";
+import { submitScore } from "@/lib/leaderboard";
+import { getPseudo } from "@/lib/user";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type View = "home" | "device" | "roulette" | "game" | "results";
@@ -886,14 +890,43 @@ export default function DiagnosticGame() {
   const [evaluation, setEvaluation] = useState<Evaluation | null>(null);
   const [hiddenData, setHiddenData] = useState<HiddenData | null>(null);
   const [diagnosis,  setDiagnosis]  = useState({ fault: "", component: "", repair: "" });
+  const { gainXP, toastEl, levelUpEl } = useXP();
 
-
-  function handleResults(ev: Evaluation, hid: HiddenData, diag: { fault: string; component: string; repair: string }) {
+  async function handleResults(ev: Evaluation, hid: HiddenData, diag: { fault: string; component: string; repair: string }) {
     setEvaluation(ev); setHiddenData(hid); setDiagnosis(diag);
     setView("results");
+
+    // XP reward based on difficulty
+    const diff = difficulty ?? "easy";
+    const xpMap: Record<string, number> = {
+      easy:   XP_REWARDS.diagnosticEasy,
+      medium: XP_REWARDS.diagnosticMedium,
+      hard:   XP_REWARDS.diagnosticHard,
+      expert: XP_REWARDS.diagnosticExpert,
+    };
+    gainXP(xpMap[diff] ?? XP_REWARDS.diagnosticEasy);
+
+    // Submit to leaderboard
+    const cfg = DIFF_CONFIG[diff as Difficulty];
+    const base = (ev.fault_score ?? 0) + (ev.component_score ?? 0) + (ev.repair_score ?? 0);
+    const finalScore = Math.round(base * cfg.mult);
+    const pct = Math.round((finalScore / cfg.max) * 100);
+    const pseudo = getPseudo();
+    if (pseudo) {
+      await submitScore({
+        pseudo,
+        score: Math.min(100, pct),
+        correct: Math.round(base),
+        total: 30,
+        category: `diagnostic-${diff}`,
+        date: new Date().toISOString(),
+      });
+    }
   }
 
   return (
+    <>
+    {toastEl}{levelUpEl}
     <div className="min-h-screen">
       {/* Sticky nav */}
       <div className="sticky top-0 z-30 border-b border-white/8 bg-[#070d1f]/95 backdrop-blur-md">
@@ -957,5 +990,6 @@ export default function DiagnosticGame() {
         }
       `}</style>
     </div>
+    </>
   );
 }
