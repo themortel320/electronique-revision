@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import {
   ArrowLeft, Send, ChevronRight, RotateCcw,
@@ -149,22 +149,35 @@ function Stars({ n }: { n: number }) {
 }
 
 // ── VIEW 1: Home ──────────────────────────────────────────────────────────────
-function HomeView({ lang, setLang, apiKey, setApiKey, onPlay }: {
-  lang: Lang; setLang: (l: Lang) => void;
-  apiKey: string; setApiKey: (k: string) => void;
-  onPlay: () => void;
+function HomeView({ lang, setLang, onPlay }: {
+  lang: Lang; setLang: (l: Lang) => void; onPlay: () => void;
 }) {
   const t = T[lang];
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-16">
+    <div className="min-h-[80vh] flex flex-col items-center justify-center px-4 py-16">
       <div className="w-full max-w-md space-y-8">
         {/* Logo */}
         <div className="text-center space-y-3">
-          <div className="text-7xl mb-2">🔌</div>
+          <div className="text-8xl mb-2 drop-shadow-[0_0_40px_rgba(249,115,22,0.4)]">🔌</div>
           <h1 className="text-5xl font-black bg-gradient-to-r from-amber-400 via-orange-400 to-red-400 bg-clip-text text-transparent">
             {t.home_title}
           </h1>
           <p className="text-white/40 text-base">{t.home_sub}</p>
+        </div>
+
+        {/* Features preview */}
+        <div className="grid grid-cols-2 gap-2 text-xs">
+          {[
+            { emoji: "📺", text: lang === "FR" ? "8 appareils" : "8 devices" },
+            { emoji: "🎰", text: lang === "FR" ? "Roulette difficulté" : "Difficulty roulette" },
+            { emoji: "🤖", text: lang === "FR" ? "Client IA Groq" : "Groq AI client" },
+            { emoji: "⭐", text: lang === "FR" ? "Score & étoiles" : "Score & stars" },
+          ].map(({ emoji, text }) => (
+            <div key={text} className="flex items-center gap-2 rounded-xl border border-white/8 bg-white/4 px-3 py-2">
+              <span>{emoji}</span>
+              <span className="text-white/50">{text}</span>
+            </div>
+          ))}
         </div>
 
         {/* Language toggle */}
@@ -181,18 +194,6 @@ function HomeView({ lang, setLang, apiKey, setApiKey, onPlay }: {
               {l === "FR" ? "Français" : "English"}
             </button>
           ))}
-        </div>
-
-        {/* API Key */}
-        <div className="space-y-1.5">
-          <label className="text-xs text-white/40">{t.home_key_label}</label>
-          <input
-            type="password"
-            value={apiKey}
-            onChange={e => setApiKey(e.target.value)}
-            placeholder={t.home_key_ph}
-            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-violet-500/40"
-          />
         </div>
 
         {/* Play button */}
@@ -783,21 +784,13 @@ function ResultsView({
 export default function DiagnosticGame() {
   const [view,       setView]       = useState<View>("home");
   const [lang,       setLang]       = useState<Lang>("FR");
-  const [apiKey,     setApiKey]     = useState(() => {
-    if (typeof window !== "undefined") return localStorage.getItem("diag_api_key") ?? "";
-    return "";
-  });
+  const [apiKey] = useState("");
   const [device,     setDevice]     = useState<Device | null>(null);
   const [difficulty, setDifficulty] = useState<Difficulty | null>(null);
   const [evaluation, setEvaluation] = useState<Evaluation | null>(null);
   const [hiddenData, setHiddenData] = useState<HiddenData | null>(null);
   const [diagnosis,  setDiagnosis]  = useState({ fault: "", component: "", repair: "" });
 
-  // Persist key
-  const saveKey = useCallback((k: string) => {
-    setApiKey(k);
-    if (typeof window !== "undefined") localStorage.setItem("diag_api_key", k);
-  }, []);
 
   function handleResults(ev: Evaluation, hid: HiddenData, diag: { fault: string; component: string; repair: string }) {
     setEvaluation(ev); setHiddenData(hid); setDiagnosis(diag);
@@ -840,8 +833,7 @@ export default function DiagnosticGame() {
 
       {/* Views */}
       {view === "home" && (
-        <HomeView lang={lang} setLang={setLang} apiKey={apiKey} setApiKey={saveKey}
-          onPlay={() => setView("device")} />
+        <HomeView lang={lang} setLang={setLang} onPlay={() => setView("device")} />
       )}
       {view === "device" && (
         <DeviceView lang={lang} onSelect={d => { setDevice(d); setView("roulette"); }} />
