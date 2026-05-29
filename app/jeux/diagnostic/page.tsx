@@ -395,6 +395,7 @@ function GameView({
   const [chat, setChat] = useState<ChatMsg[]>([]);
   const [hiddenData, setHiddenData] = useState<HiddenData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [initError, setInitError] = useState<string | null>(null);
   const [input, setInput] = useState("");
   const [notes, setNotes] = useState("");
   const [clues, setClues] = useState<string[]>([]);
@@ -402,54 +403,57 @@ function GameView({
   const [score, setScore] = useState(0);
   const [diag, setDiag] = useState({ fault: "", component: "", repair: "" });
   const [mobileTab, setMobileTab] = useState<"chat" | "tools">("chat");
+  const [lastFailedMsg, setLastFailedMsg] = useState<string | null>(null);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
 
-  async function callApi(history: GroqMsg[], type: string) {
+  async function callApi(history: GroqMsg[], type: string): Promise<string> {
     const res = await fetch("/api/diagnostic", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         type, history,
         device: lang === "FR" ? device.fr : device.en,
-        difficulty,
-        lang,
-        playerKey: apiKey || undefined,
+        difficulty, lang,
       }),
     });
     const data = await res.json();
-    if (!res.ok || data.error) throw new Error(data.error ?? "API error");
+    if (!res.ok || data.error) throw new Error(data.error ?? `Erreur ${res.status}`);
+    if (!data.content) throw new Error("Réponse vide");
     return data.content as string;
   }
 
-  // Init game
-  useEffect(() => {
+  // Init with auto-retry once
+  async function initGame() {
+    setLoading(true);
+    setInitError(null);
+    setChat([]);
     const startMsg: GroqMsg = { role: "user", content: "START_GAME" };
-    callApi([startMsg], "init")
-      .then(content => {
-        const hid = parseHidden(content);
-        const story = parseStory(content);
-        setHiddenData(hid);
-        setGroqHist([startMsg, { role: "assistant", content }]);
-        setChat([{ role: "customer", content: story, ts: Date.now() }]);
-        setLoading(false);
-      })
-      .catch(() => {
-        setChat([{ role: "customer", content: "⚠️ Impossible de démarrer la partie. Vérifie ta clé API.", ts: Date.now() }]);
-        setLoading(false);
-      });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    try {
+      const content = await callApi([startMsg], "init");
+      const hid = parseHidden(content);
+      const story = parseStory(content);
+      setHiddenData(hid);
+      setGroqHist([startMsg, { role: "assistant", content }]);
+      setChat([{ role: "customer", content: story, ts: Date.now() }]);
+    } catch (e) {
+      setInitError(String(e).replace("Error: ", ""));
+    }
+    setLoading(false);
+  }
+
+  useEffect(() => { initGame(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-scroll chat
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chat, loading]);
 
-  async function sendMessage() {
-    const msg = input.trim();
+  async function sendMessage(overrideMsg?: string) {
+    const msg = (overrideMsg ?? input).trim();
     if (!msg || loading) return;
     setInput("");
+    setLastFailedMsg(null);
 
     const playerMsg: GroqMsg = { role: "user", content: msg };
     const newHist = [...groqHist, playerMsg];
@@ -458,18 +462,21 @@ function GameView({
     setQCount(n => n + 1);
     setLoading(true);
 
-    // Extract key info as note
     if (msg.length > 15) setClues(c => [...c.slice(-7), `Q${qCount + 1}: ${msg.slice(0, 60)}${msg.length > 60 ? "…" : ""}`]);
 
     try {
       const content = await callApi(newHist, "chat");
-      const finalHist: GroqMsg[] = [...newHist, { role: "assistant", content }];
-      setGroqHist(finalHist);
+      setGroqHist([...newHist, { role: "assistant", content }]);
       setChat(c => [...c, { role: "customer", content, ts: Date.now() }]);
-      // Simple scoring: +5 per relevant question
       setScore(s => s + 5);
-    } catch {
-      setChat(c => [...c, { role: "customer", content: "⚠️ Erreur réseau. Réessaie.", ts: Date.now() }]);
+    } catch (e) {
+      const errMsg = String(e).replace("Error: ", "");
+      setLastFailedMsg(msg); // keep for retry
+      setChat(c => [...c, {
+        role: "customer",
+        content: `⚠️ ${errMsg} — Clique sur Réessayer ci-dessous.`,
+        ts: Date.now(),
+      }]);
     }
     setLoading(false);
   }
@@ -486,17 +493,16 @@ function GameView({
       const content = await callApi(newHist, "evaluate");
       const ev = parseEvaluation(content);
       if (ev) {
-        const base = (ev.fault_score ?? 0) + (ev.component_score ?? 0) + (ev.repair_score ?? 0) + score;
-        const finalScore = Math.round(base * cfg.mult);
-        onResults({ ...ev }, hiddenData!, diag);
-        // Pass score separately via the evaluation
-        (ev as Evaluation & { total: number }).total = finalScore;
         onResults(ev, hiddenData!, diag);
       } else {
-        setChat(c => [...c, { role: "customer", content: "⚠️ Impossible d'évaluer. Réessaie.", ts: Date.now() }]);
+        // Raw response wasn't JSON-parseable — show retry
+        setLastFailedMsg("__submit__");
+        setChat(c => [...c, { role: "customer", content: "⚠️ Format de réponse inattendu. Réessaie.", ts: Date.now() }]);
       }
-    } catch {
-      setChat(c => [...c, { role: "customer", content: "⚠️ Erreur lors de l'évaluation.", ts: Date.now() }]);
+    } catch (e) {
+      const errMsg = String(e).replace("Error: ", "");
+      setLastFailedMsg("__submit__");
+      setChat(c => [...c, { role: "customer", content: `⚠️ ${errMsg} — Réessaie.`, ts: Date.now() }]);
     }
     setLoading(false);
   }
@@ -632,6 +638,24 @@ function GameView({
               </div>
             ))}
 
+            {/* Init error banner */}
+            {initError && !loading && chat.length === 0 && (
+              <div className="mx-2 rounded-2xl border border-red-600/40 bg-red-900/20 p-4 space-y-3">
+                <div className="flex items-start gap-2 text-sm text-red-300">
+                  <AlertCircle size={16} className="shrink-0 mt-0.5"/>
+                  <div>
+                    <p className="font-semibold">Impossible de démarrer la partie</p>
+                    <p className="text-xs text-red-300/60 mt-0.5 font-mono">{initError}</p>
+                  </div>
+                </div>
+                <button onClick={initGame}
+                  className="w-full py-2 rounded-xl bg-red-800/40 hover:bg-red-700/40 border border-red-600/30 text-red-300 text-sm font-semibold flex items-center justify-center gap-2 transition-all"
+                >
+                  <RotateCcw size={14} /> Réessayer la connexion
+                </button>
+              </div>
+            )}
+
             {loading && (
               <div className="flex gap-2.5">
                 <div className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center bg-white/10 text-lg">👤</div>
@@ -648,6 +672,21 @@ function GameView({
             <div ref={chatEndRef} />
           </div>
 
+          {/* Retry bar for failed messages */}
+          {lastFailedMsg && !loading && lastFailedMsg !== "__submit__" && (
+            <div className="px-3 pt-2 shrink-0">
+              <div className="flex items-center gap-2 rounded-xl border border-orange-700/30 bg-orange-900/15 px-3 py-2 text-xs text-orange-300">
+                <AlertCircle size={13} className="shrink-0" />
+                <span className="flex-1 truncate">Message non envoyé : &ldquo;{lastFailedMsg.slice(0, 40)}{lastFailedMsg.length > 40 ? "…" : ""}&rdquo;</span>
+                <button onClick={() => sendMessage(lastFailedMsg)}
+                  className="shrink-0 flex items-center gap-1 font-semibold hover:text-orange-200 transition-colors"
+                >
+                  <RotateCcw size={11} /> Réessayer
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Input */}
           <div className="px-3 pb-3 pt-2 border-t border-white/8 shrink-0">
             <div className="flex gap-2">
@@ -655,11 +694,11 @@ function GameView({
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && !e.shiftKey && sendMessage()}
-                disabled={loading}
-                placeholder={t.game_placeholder}
-                className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/25 focus:outline-none focus:ring-2 focus:ring-violet-500/40 disabled:opacity-50"
+                disabled={loading || !!initError}
+                placeholder={initError ? "Corrige l'erreur d'abord…" : t.game_placeholder}
+                className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/25 focus:outline-none focus:ring-2 focus:ring-violet-500/40 disabled:opacity-40"
               />
-              <button onClick={sendMessage} disabled={loading || !input.trim()}
+              <button onClick={() => sendMessage()} disabled={loading || !input.trim() || !!initError}
                 className="w-10 h-10 rounded-xl bg-violet-600 hover:bg-violet-500 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-all shrink-0"
               >
                 <Send size={15} className="text-white" />

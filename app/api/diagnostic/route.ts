@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
+const MODEL = "llama-3.3-70b-versatile"; // same as the rest of the site
 
 function buildSystem(device: string, difficulty: string, lang: string) {
   const langName = lang === "FR" ? "French" : "English";
@@ -58,25 +59,42 @@ Output ONLY this block (no other text):
 ---END_EVALUATION---`;
 }
 
+// Retry with exponential backoff — handles 429 rate-limit automatically
+async function fetchWithRetry(url: string, options: RequestInit, maxRetries = 3): Promise<Response> {
+  let lastError: Response | null = null;
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    const res = await fetch(url, options);
+    if (res.status !== 429) return res;          // success or non-retriable error
+    lastError = res;
+    const retryAfter = res.headers.get("Retry-After");
+    const delay = retryAfter ? parseInt(retryAfter) * 1000 : (attempt + 1) * 1500;
+    await new Promise(r => setTimeout(r, delay)); // wait before retry
+  }
+  return lastError!;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { type, device, difficulty, lang, history, playerKey, maxTokens } = await req.json();
 
     const apiKey = playerKey || process.env.GROQ_API_KEY;
     if (!apiKey) {
-      return NextResponse.json({ error: "No API key provided" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Clé API Groq manquante. Ajoute GROQ_API_KEY dans .env.local" },
+        { status: 401 }
+      );
     }
 
-    const res = await fetch(GROQ_URL, {
+    const res = await fetchWithRetry(GROQ_URL, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "llama3-70b-8192",
+        model: MODEL,
         temperature: 0.8,
-        max_tokens: maxTokens ?? (type === "init" ? 1500 : type === "evaluate" ? 600 : 500),
+        max_tokens: maxTokens ?? (type === "init" ? 1200 : type === "evaluate" ? 500 : 450),
         messages: [
           { role: "system", content: buildSystem(device, difficulty, lang) },
           ...history,
@@ -85,14 +103,22 @@ export async function POST(req: NextRequest) {
     });
 
     if (!res.ok) {
-      const err = await res.text();
-      return NextResponse.json({ error: err }, { status: res.status });
+      const errText = await res.text();
+      let errMsg = `Groq ${res.status}`;
+      try {
+        const j = JSON.parse(errText);
+        errMsg = j?.error?.message ?? errMsg;
+      } catch { /**/ }
+      return NextResponse.json({ error: errMsg }, { status: res.status });
     }
 
     const data = await res.json();
     const content: string = data.choices?.[0]?.message?.content ?? "";
+    if (!content) {
+      return NextResponse.json({ error: "Réponse vide de Groq" }, { status: 502 });
+    }
     return NextResponse.json({ content });
   } catch (e) {
-    return NextResponse.json({ error: String(e) }, { status: 500 });
+    return NextResponse.json({ error: `Erreur réseau : ${String(e)}` }, { status: 500 });
   }
 }
