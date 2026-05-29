@@ -1,18 +1,127 @@
 "use client";
 
 import { CourseCard } from "@/components/course-card";
+import { CourseGroup } from "@/components/course-group";
 import { QuestionCard } from "@/components/question-card";
 import { AITutor, AITutorButton } from "@/components/ai-tutor";
 import { courseModules } from "@/lib/modules";
 import { useState } from "react";
 
-const MAINTENANCE_IDS = ["instruments-mesure", "diagnostic-pannes", "soudure-montage", "normes-securite"];
-const FABRICATION_IDS = ["fabrication-pcb"];
+// IDs dans modules.ts
+const MAINTENANCE_GROUPS = [
+  {
+    title: "Instruments de mesure",
+    subtitle: "Multimètre, oscilloscope, générateur de signaux",
+    emoji: "📏",
+    accent: "text-orange-400",
+    border: "border-orange-700/25",
+    bg: "bg-orange-900/8",
+    ids: ["instruments-mesure"],
+  },
+  {
+    title: "Diagnostic de pannes",
+    subtitle: "Méthode dichotomique, court-circuit, circuit ouvert",
+    emoji: "🔍",
+    accent: "text-red-400",
+    border: "border-red-700/25",
+    bg: "bg-red-900/8",
+    ids: ["diagnostic-pannes"],
+  },
+  {
+    title: "Soudure & Montage",
+    subtitle: "Soudure THT et CMS, brasage, qualité",
+    emoji: "🔥",
+    accent: "text-yellow-400",
+    border: "border-yellow-700/25",
+    bg: "bg-yellow-900/8",
+    ids: ["soudure-montage"],
+  },
+  {
+    title: "Normes & Sécurité",
+    subtitle: "Habilitations électriques, IP, NF C 15-100, CEM",
+    emoji: "⚡",
+    accent: "text-green-400",
+    border: "border-green-700/25",
+    bg: "bg-green-900/8",
+    ids: ["normes-securite"],
+  },
+];
 
-const TABS = [
-  { id: "maintenance", label: "🔧 Maintenance" },
-  { id: "fabrication", label: "🏭 Fabrication" },
-  { id: "exercices", label: "🎲 Exercices GPT" },
+const FABRICATION_GROUPS = [
+  {
+    title: "Conception PCB",
+    subtitle: "FR4, couches, vias, fichiers gerber, gravure chimique",
+    emoji: "🖥️",
+    accent: "text-sky-400",
+    border: "border-sky-700/25",
+    bg: "bg-sky-900/8",
+    ids: ["fabrication-pcb"],
+    inline: null,
+  },
+  {
+    title: "Lecture de Datasheet",
+    subtitle: "Pinout, caractéristiques, application note",
+    emoji: "📄",
+    accent: "text-indigo-400",
+    border: "border-indigo-700/25",
+    bg: "bg-indigo-900/8",
+    ids: [],
+    inline: (
+      <div className="space-y-3 text-sm text-white/70 px-1">
+        <div className="p-3 rounded-xl bg-white/5 border border-white/8">
+          <p className="text-white/90 font-medium mb-2">📌 Sections clés d&apos;une datasheet</p>
+          <ul className="space-y-1 text-white/60 text-xs list-disc list-inside">
+            <li><strong>Features</strong> : résumé des caractéristiques principales</li>
+            <li><strong>Absolute Maximum Ratings</strong> : limites à ne JAMAIS dépasser</li>
+            <li><strong>Electrical Characteristics</strong> : valeurs typiques et garanties</li>
+            <li><strong>Pinout / Pin Description</strong> : identification de chaque broche</li>
+            <li><strong>Application Circuit</strong> : schéma recommandé par le fabricant</li>
+          </ul>
+        </div>
+        <div className="p-3 rounded-xl bg-white/5 border border-white/8">
+          <p className="text-white/90 font-medium mb-1">💡 Exemple : LM7805</p>
+          <p className="text-white/60 text-xs">
+            Vin max = 35V · Vout = 5V ±2% · Iout max = 1A · T° jonction max = 125°C
+            <br/>Package TO-220 : broche 1 = INPUT · 2 = GND · 3 = OUTPUT
+          </p>
+        </div>
+      </div>
+    ),
+  },
+  {
+    title: "Contrôle qualité IPC-610",
+    subtitle: "Classes IPC, défauts courants, inspection AOI",
+    emoji: "✅",
+    accent: "text-emerald-400",
+    border: "border-emerald-700/25",
+    bg: "bg-emerald-900/8",
+    ids: [],
+    inline: (
+      <div className="space-y-3 px-1">
+        <div className="grid grid-cols-3 gap-2 text-xs text-white/60">
+          {[
+            { label: "Classe 1", desc: "Grand public — exigences minimales", color: "green" },
+            { label: "Classe 2", desc: "Longue durée de vie (auto, téléphones)", color: "blue" },
+            { label: "Classe 3", desc: "Critique — médical, aérospatial", color: "red" },
+          ].map(({ label, desc, color }) => (
+            <div key={label} className={`p-2 rounded-lg bg-${color}-900/20 border border-${color}-700/30`}>
+              <p className={`text-${color}-400 font-bold mb-1`}>{label}</p>
+              <p>{desc}</p>
+            </div>
+          ))}
+        </div>
+        <div className="p-3 rounded-xl bg-white/5 border border-white/8 text-xs text-white/60">
+          <p className="text-white/90 font-medium mb-1">Défauts courants</p>
+          <ul className="space-y-0.5 list-disc list-inside">
+            <li>Pont de soudure entre deux pads</li>
+            <li>Composant mal positionné ou inversé</li>
+            <li>Tombstone (un seul côté soudé)</li>
+            <li>Pad décollé / piste arrachée</li>
+          </ul>
+        </div>
+      </div>
+    ),
+  },
 ];
 
 const MAINTENANCE_CHAPTERS = [
@@ -21,12 +130,16 @@ const MAINTENANCE_CHAPTERS = [
   "Soudure et montage THT/CMS",
   "Normes et sécurité électrique (habilitations, IP, CEM)",
 ];
-
 const FABRICATION_CHAPTERS = [
   "Fabrication de circuits imprimés PCB (gerber, couches, vias)",
   "Composants CMS/SMD et procédés d'assemblage (reflow, vague)",
-  "Lecture de datasheet et documentation technique",
   "Contrôle qualité et inspection en électronique (AOI, IPC-610)",
+];
+
+const TABS = [
+  { id: "maintenance", label: "🔧 Maintenance" },
+  { id: "fabrication", label: "🏭 Fabrication" },
+  { id: "exercices",   label: "🎲 Exercices GPT" },
 ];
 
 export default function MaintenancePage() {
@@ -35,19 +148,18 @@ export default function MaintenancePage() {
   const [tutorOpen, setTutorOpen] = useState(false);
   const [exerciceSubTab, setExerciceSubTab] = useState<"maintenance" | "fabrication">("maintenance");
 
-  const maintenanceModules = courseModules.filter((m) => MAINTENANCE_IDS.includes(m.id));
-  const fabricationModules = courseModules.filter((m) => FABRICATION_IDS.includes(m.id));
+  function openTutor(q?: string) { setTutorQuestion(q); setTutorOpen(true); }
 
-  function openTutor(q?: string) {
-    setTutorQuestion(q);
-    setTutorOpen(true);
-  }
+  const maintenanceModules = courseModules.filter((m) =>
+    ["instruments-mesure","diagnostic-pannes","soudure-montage","normes-securite"].includes(m.id)
+  );
+  const fabricationModules = courseModules.filter((m) => m.id === "fabrication-pcb");
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-10 space-y-8">
+    <div className="max-w-4xl mx-auto px-4 py-10 space-y-6">
       {/* Header */}
-      <div>
-        <div className="flex items-center gap-3 mb-3">
+      <header>
+        <div className="flex items-center gap-3 mb-2">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-xl">
             🔧
           </div>
@@ -55,35 +167,23 @@ export default function MaintenancePage() {
             <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent">
               Maintenance & Fabrication
             </h1>
-            <p className="text-white/50 text-sm">
-              Instruments · Diagnostic · Soudure · PCB · Normes — pour tes épreuves pratiques
+            <p className="text-white/40 text-sm">
+              Instruments · Diagnostic · Soudure · PCB · Normes
             </p>
           </div>
         </div>
-
-        {/* Info banner */}
-        <div className="p-4 rounded-2xl bg-orange-900/20 border border-orange-700/30 text-sm text-orange-300/90 flex gap-3">
-          <span className="text-xl shrink-0">📋</span>
-          <div>
-            <p className="font-medium mb-1">Cours orientés épreuves de BTS/BEP/BAC Pro</p>
-            <p className="text-orange-300/60 text-xs">
-              Couvre la maintenance électronique (mesures, diagnostic, soudure, normes) et la fabrication
-              (PCB, CMS, datasheet, contrôle qualité).
-            </p>
-          </div>
+        <div className="p-3 rounded-2xl bg-orange-900/20 border border-orange-700/30 text-sm text-orange-300/80 flex gap-2 items-start">
+          <span className="shrink-0">📋</span>
+          <span>Cours orientés épreuves pratiques BTS / BAC Pro — maintenance électronique &amp; fabrication PCB.</span>
         </div>
-      </div>
+      </header>
 
-      {/* Tabs */}
-      <div className="flex gap-2 bg-white/5 border border-white/10 rounded-2xl p-1 w-fit flex-wrap">
+      {/* Section tabs */}
+      <div className="flex gap-1.5 bg-white/5 border border-white/10 rounded-2xl p-1 w-fit flex-wrap">
         {TABS.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
+          <button key={t.id} onClick={() => setTab(t.id)}
             className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-              tab === t.id
-                ? "bg-orange-600 text-white shadow-sm"
-                : "text-white/50 hover:text-white"
+              tab === t.id ? "bg-orange-600 text-white shadow-sm" : "text-white/50 hover:text-white"
             }`}
           >
             {t.label}
@@ -93,130 +193,55 @@ export default function MaintenancePage() {
 
       {/* ── MAINTENANCE ── */}
       {tab === "maintenance" && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
-            {[
-              { icon: "📏", label: "Instruments de mesure", desc: "Multimètre, oscilloscope, générateur" },
-              { icon: "🔍", label: "Diagnostic de pannes", desc: "Méthode dichotomie, circuit ouvert/CC" },
-              { icon: "🔥", label: "Soudure & Montage", desc: "THT, CMS, qualité de soudure" },
-              { icon: "⚡", label: "Normes & Sécurité", desc: "Habilitations, IP, NF C 15-100, CEM" },
-            ].map((item) => (
-              <div key={item.label} className="flex items-center gap-3 p-3 rounded-xl bg-white/3 border border-white/8">
-                <span className="text-2xl">{item.icon}</span>
-                <div>
-                  <p className="text-white/80 text-sm font-medium">{item.label}</p>
-                  <p className="text-white/40 text-xs">{item.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-          {maintenanceModules.length > 0 ? (
-            maintenanceModules.map((mod) => (
-              <CourseCard key={mod.id} module={mod} onAskTutor={(q) => openTutor(q)} />
-            ))
-          ) : (
-            <div className="p-8 rounded-2xl border border-white/10 text-center text-white/40">
-              Chargement des modules de maintenance…
-            </div>
-          )}
+        <div className="space-y-4">
+          {MAINTENANCE_GROUPS.map((group, gi) => {
+            const mods = group.ids.map((id) => maintenanceModules.find((m) => m.id === id)).filter(Boolean) as typeof maintenanceModules;
+            return (
+              <CourseGroup
+                key={group.title}
+                title={group.title}
+                subtitle={group.subtitle}
+                emoji={group.emoji}
+                accentClass={group.accent}
+                borderClass={group.border}
+                bgClass={group.bg}
+                defaultOpen={gi === 0}
+              >
+                {mods.length > 0 ? (
+                  mods.map((mod) => <CourseCard key={mod.id} module={mod} onAskTutor={openTutor} />)
+                ) : (
+                  <p className="text-white/30 text-sm text-center py-3">Module bientôt disponible.</p>
+                )}
+              </CourseGroup>
+            );
+          })}
         </div>
       )}
 
       {/* ── FABRICATION ── */}
       {tab === "fabrication" && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
-            {[
-              { icon: "🖥️", label: "Fabrication PCB", desc: "FR4, couches, vias, gerber, gravure" },
-              { icon: "🔬", label: "Assemblage CMS", desc: "SMD, reflow, vague, pâte à braser" },
-              { icon: "📄", label: "Lecture Datasheet", desc: "Pinout, caractéristiques, application note" },
-              { icon: "✅", label: "Contrôle qualité", desc: "IPC-610, AOI, inspection visuelle" },
-            ].map((item) => (
-              <div key={item.label} className="flex items-center gap-3 p-3 rounded-xl bg-white/3 border border-white/8">
-                <span className="text-2xl">{item.icon}</span>
-                <div>
-                  <p className="text-white/80 text-sm font-medium">{item.label}</p>
-                  <p className="text-white/40 text-xs">{item.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Fabrication PCB module */}
-          {fabricationModules.map((mod) => (
-            <CourseCard key={mod.id} module={mod} onAskTutor={(q) => openTutor(q)} />
-          ))}
-
-          {/* Extra content cards for topics not yet in modules.ts */}
-          <div className="rounded-2xl border border-white/10 bg-[#0d0d1f] p-5 space-y-4">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">📄</span>
-              <div>
-                <h3 className="text-white font-semibold">Lecture de Datasheet</h3>
-                <p className="text-white/40 text-xs">Documentation technique des composants</p>
-              </div>
-            </div>
-            <div className="space-y-3 text-sm text-white/70">
-              <div className="p-3 rounded-xl bg-white/5 border border-white/8">
-                <p className="text-white/90 font-medium mb-1">📌 Sections clés d&apos;une datasheet</p>
-                <ul className="space-y-1 text-white/60 text-xs list-disc list-inside">
-                  <li><strong>Features</strong> : résumé des caractéristiques principales</li>
-                  <li><strong>Absolute Maximum Ratings</strong> : limites à ne JAMAIS dépasser (tension max, courant max, température)</li>
-                  <li><strong>Electrical Characteristics</strong> : valeurs typiques et garanties en fonctionnement normal</li>
-                  <li><strong>Pinout / Pin Description</strong> : identification de chaque broche</li>
-                  <li><strong>Application Circuit</strong> : schéma de mise en œuvre recommandé par le fabricant</li>
-                  <li><strong>Timing Diagrams</strong> : chronogrammes pour les composants logiques/numériques</li>
-                </ul>
-              </div>
-              <div className="p-3 rounded-xl bg-white/5 border border-white/8">
-                <p className="text-white/90 font-medium mb-1">💡 Exemple : lire la datasheet d&apos;un régulateur LM7805</p>
-                <p className="text-white/60 text-xs">
-                  Vin max = 35V, Vout = 5V ±2%, Iout max = 1A, température de jonction max = 125°C.
-                  Package TO-220 : broche 1 = INPUT, broche 2 = GND, broche 3 = OUTPUT.
-                  Application : condensateurs 0.1µF en entrée et sortie recommandés.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-white/10 bg-[#0d0d1f] p-5 space-y-4">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">✅</span>
-              <div>
-                <h3 className="text-white font-semibold">Contrôle qualité IPC-610</h3>
-                <p className="text-white/40 text-xs">Normes d&apos;acceptabilité des assemblages électroniques</p>
-              </div>
-            </div>
-            <div className="space-y-3 text-sm">
-              <div className="p-3 rounded-xl bg-white/5 border border-white/8">
-                <p className="text-white/90 font-medium mb-2">Classes IPC</p>
-                <div className="grid grid-cols-3 gap-2 text-xs text-white/60">
-                  <div className="p-2 rounded-lg bg-green-900/20 border border-green-700/30">
-                    <p className="text-green-400 font-bold mb-1">Classe 1</p>
-                    <p>Électronique générale — exigences minimales (jouets, appareils grand public sans criticité)</p>
-                  </div>
-                  <div className="p-2 rounded-lg bg-blue-900/20 border border-blue-700/30">
-                    <p className="text-blue-400 font-bold mb-1">Classe 2</p>
-                    <p>Électronique dédiée — longue durée de vie souhaitée (téléphones, ordinateurs, automobile)</p>
-                  </div>
-                  <div className="p-2 rounded-lg bg-red-900/20 border border-red-700/30">
-                    <p className="text-red-400 font-bold mb-1">Classe 3</p>
-                    <p>Électronique critique — pas de panne admissible (médical, aérospatial, militaire)</p>
-                  </div>
-                </div>
-              </div>
-              <div className="p-3 rounded-xl bg-white/5 border border-white/8">
-                <p className="text-white/90 font-medium mb-1">Défauts courants à détecter</p>
-                <ul className="text-xs text-white/60 space-y-1 list-disc list-inside">
-                  <li>Pont de soudure (solder bridge) entre deux pads adjacents</li>
-                  <li>Composant mal positionné ou inversé (polarité)</li>
-                  <li>Soudure insuffisante (lack of fill) ou excès d&apos;étain (excess solder)</li>
-                  <li>Composant tombstone (un seul côté soudé, l&apos;autre soulevé)</li>
-                  <li>Pad décollé ou piste arrachée (pad lift)</li>
-                </ul>
-              </div>
-            </div>
-          </div>
+        <div className="space-y-4">
+          {FABRICATION_GROUPS.map((group, gi) => {
+            const mods = group.ids.map((id) => fabricationModules.find((m) => m.id === id)).filter(Boolean) as typeof fabricationModules;
+            return (
+              <CourseGroup
+                key={group.title}
+                title={group.title}
+                subtitle={group.subtitle}
+                emoji={group.emoji}
+                accentClass={group.accent}
+                borderClass={group.border}
+                bgClass={group.bg}
+                defaultOpen={gi === 0}
+              >
+                {mods.length > 0 && mods.map((mod) => <CourseCard key={mod.id} module={mod} onAskTutor={openTutor} />)}
+                {group.inline}
+                {mods.length === 0 && !group.inline && (
+                  <p className="text-white/30 text-sm text-center py-3">Module bientôt disponible.</p>
+                )}
+              </CourseGroup>
+            );
+          })}
         </div>
       )}
 
@@ -224,49 +249,31 @@ export default function MaintenancePage() {
       {tab === "exercices" && (
         <div className="space-y-5">
           <div className="flex gap-2">
-            <button
-              onClick={() => setExerciceSubTab("maintenance")}
-              className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${
-                exerciceSubTab === "maintenance"
-                  ? "bg-orange-600 border-orange-500 text-white"
-                  : "border-white/10 text-white/40 hover:text-white"
-              }`}
-            >
-              🔧 Maintenance
-            </button>
-            <button
-              onClick={() => setExerciceSubTab("fabrication")}
-              className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${
-                exerciceSubTab === "fabrication"
-                  ? "bg-orange-600 border-orange-500 text-white"
-                  : "border-white/10 text-white/40 hover:text-white"
-              }`}
-            >
-              🏭 Fabrication
-            </button>
+            {(["maintenance", "fabrication"] as const).map((st) => (
+              <button key={st} onClick={() => setExerciceSubTab(st)}
+                className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${
+                  exerciceSubTab === st
+                    ? "bg-orange-600 border-orange-500 text-white"
+                    : "border-white/10 text-white/40 hover:text-white"
+                }`}
+              >
+                {st === "maintenance" ? "🔧 Maintenance" : "🏭 Fabrication"}
+              </button>
+            ))}
           </div>
-
           <QuestionCard
             defaultChapter={
-              exerciceSubTab === "maintenance"
-                ? MAINTENANCE_CHAPTERS[0]
-                : FABRICATION_CHAPTERS[0]
+              exerciceSubTab === "maintenance" ? MAINTENANCE_CHAPTERS[0] : FABRICATION_CHAPTERS[0]
             }
-            onAskTutor={(q) => openTutor(q)}
+            onAskTutor={openTutor}
           />
-
           <AITutor
-            module={
-              exerciceSubTab === "maintenance"
-                ? maintenanceModules[0]
-                : fabricationModules[0]
-            }
+            module={exerciceSubTab === "maintenance" ? maintenanceModules[0] : fabricationModules[0]}
             initialQuestion={tutorOpen ? tutorQuestion : undefined}
           />
         </div>
       )}
 
-      {/* Floating tutor button */}
       {tab !== "exercices" && (
         <AITutorButton
           module={tab === "maintenance" ? maintenanceModules[0] : fabricationModules[0]}

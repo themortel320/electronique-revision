@@ -21,25 +21,28 @@ const SECTIONS = [
         href: "/modules",
         icon: <Zap size={20} className="text-amber-400" />,
         label: "Électronique",
-        desc: "Loi d'Ohm, transistors, filtres, AOP — avec schémas SVG",
+        desc: "Cours complets avec schémas SVG et explications pas à pas",
         tag: "10 modules",
         gradient: "from-amber-600 to-orange-600",
+        subs: ["⚡ Lois électriques", "🔋 Composants passifs", "💡 Semi-conducteurs", "🎛️ Circuits avancés"],
       },
       {
         href: "/math",
         icon: <FlaskConical size={20} className="text-violet-400" />,
         label: "Mathématiques",
-        desc: "Dérivées, intégrales, suites numériques, trigonométrie",
+        desc: "Graphes interactifs et exercices générés par IA",
         tag: "4 modules",
         gradient: "from-violet-600 to-purple-600",
+        subs: ["∂ Dérivées", "∫ Intégrales", "∑ Suites", "〜 Trigonométrie"],
       },
       {
         href: "/maintenance",
         icon: <Wrench size={20} className="text-orange-400" />,
         label: "Maintenance & Fabrication",
-        desc: "Instruments de mesure, diagnostic de pannes, PCB",
+        desc: "Pour tes épreuves pratiques BTS / BAC Pro",
         tag: "5 modules",
         gradient: "from-orange-600 to-red-600",
+        subs: ["📏 Mesure", "🔍 Diagnostic", "🔥 Soudure", "🏭 Fabrication PCB"],
       },
       {
         href: "/english",
@@ -48,6 +51,7 @@ const SECTIONS = [
         desc: "Vocabulaire, décrire un circuit, rédiger un rapport de panne",
         tag: "Quiz intégré",
         gradient: "from-blue-600 to-sky-600",
+        subs: ["📖 Vocabulary", "🔌 Describe circuits", "🔍 Fault finding", "✏️ Quiz"],
       },
     ],
   },
@@ -67,6 +71,7 @@ const SECTIONS = [
         desc: "Calculs pas à pas, correction détaillée, niveaux facile → difficile",
         tag: "Générateur IA",
         gradient: "from-emerald-600 to-teal-600",
+        subs: ["📐 Électronique", "∂ Maths", "🔧 Maintenance"],
       },
       {
         href: "/quiz",
@@ -75,6 +80,7 @@ const SECTIONS = [
         desc: "+300 questions par catégorie, classement mondial hebdomadaire",
         tag: "Classement",
         gradient: "from-pink-600 to-rose-600",
+        subs: ["⚡ Électronique", "∂ Maths", "🔧 Pratique", "🌍 Anglais"],
       },
       {
         href: "/exam",
@@ -83,6 +89,7 @@ const SECTIONS = [
         desc: "Chronomètre, sans aide, bilan détaillé à la fin",
         tag: "Conditions réelles",
         gradient: "from-red-600 to-orange-600",
+        subs: ["⏱️ Chronométré", "🚫 Sans aide", "📊 Bilan final"],
       },
     ],
   },
@@ -102,6 +109,7 @@ const SECTIONS = [
         desc: "Algorithme SM-2 (comme Anki) — mémorisation optimale sur le long terme",
         tag: "Recommandé",
         gradient: "from-indigo-600 to-violet-600",
+        subs: ["🃏 Flashcards", "📅 Planning auto", "🔁 SM-2"],
       },
       {
         href: "/dashboard",
@@ -110,6 +118,7 @@ const SECTIONS = [
         desc: "Radar des compétences, historique, points faibles identifiés",
         tag: "Stats complètes",
         gradient: "from-violet-600 to-purple-600",
+        subs: ["📡 Radar", "📋 Historique", "⚠️ Points faibles"],
       },
       {
         href: "/study",
@@ -118,6 +127,7 @@ const SECTIONS = [
         desc: "Programme personnalisé selon ta durée disponible et ta matière",
         tag: "Personnalisé",
         gradient: "from-cyan-600 to-blue-600",
+        subs: ["📅 Programme", "🎯 Par matière", "⏳ Par durée"],
       },
     ],
   },
@@ -208,6 +218,15 @@ export default function Home() {
                   <p className="font-semibold text-white text-sm">{item.label}</p>
                   <p className="text-xs text-white/40 mt-1 leading-relaxed">{item.desc}</p>
                 </div>
+                {"subs" in item && item.subs && (
+                  <div className="flex flex-wrap gap-1">
+                    {item.subs.map((sub) => (
+                      <span key={sub} className="text-[10px] bg-white/5 border border-white/8 rounded-md px-1.5 py-0.5 text-white/35">
+                        {sub}
+                      </span>
+                    ))}
+                  </div>
+                )}
                 <div className={`flex items-center gap-1 text-xs font-medium ${section.accent} group-hover:gap-2 transition-all`}>
                   Ouvrir <ChevronRight size={12} />
                 </div>
