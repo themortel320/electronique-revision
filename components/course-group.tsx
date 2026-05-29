@@ -34,7 +34,7 @@ export function CourseGroup({
         <span className="text-xl">{emoji}</span>
         <div className="flex-1">
           <p className={`font-bold text-sm ${accentClass}`}>{title}</p>
-          {subtitle && <p className="text-xs text-white/35 mt-0.5">{subtitle}</p>}
+          {subtitle && <p className="text-xs text-white/50 mt-0.5">{subtitle}</p>}
         </div>
         <ChevronDown
           className={`h-4 w-4 text-white/25 transition-transform duration-200 ${open ? "rotate-180" : ""}`}

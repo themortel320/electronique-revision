@@ -239,7 +239,7 @@ export default function Home() {
                 {"subs" in item && item.subs && (
                   <div className="flex flex-wrap gap-1">
                     {item.subs.map((sub) => (
-                      <span key={sub} className="text-[10px] bg-white/5 border border-white/8 rounded-md px-1.5 py-0.5 text-white/35">
+                      <span key={sub} className="text-[10px] bg-white/10 border border-white/15 rounded-md px-1.5 py-0.5 text-white/60 font-medium">
                         {sub}
                       </span>
                     ))}

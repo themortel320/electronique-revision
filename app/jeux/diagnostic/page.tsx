@@ -382,10 +382,10 @@ function RouletteView({ lang, device, onResult }: { lang: Lang; device: Device; 
 
 // ── VIEW 4: Game ──────────────────────────────────────────────────────────────
 function GameView({
-  lang, device, difficulty, apiKey,
+  lang, device, difficulty,
   onResults,
 }: {
-  lang: Lang; device: Device; difficulty: Difficulty; apiKey: string;
+  lang: Lang; device: Device; difficulty: Difficulty; apiKey?: string;
   onResults: (ev: Evaluation, hid: HiddenData, diag: { fault: string; component: string; repair: string }) => void;
 }) {
   const t = T[lang];
@@ -401,7 +401,12 @@ function GameView({
   const [clues, setClues] = useState<string[]>([]);
   const [qCount, setQCount] = useState(0);
   const [score, setScore] = useState(0);
-  const [diag, setDiag] = useState({ fault: "", component: "", repair: "" });
+  // Diagnosis fields — kept at top level to avoid re-mount focus bug
+  const [diagFault,    setDiagFault]    = useState("");
+  const [diagComp,     setDiagComp]     = useState("");
+  const [diagRepair,   setDiagRepair]   = useState("");
+  // Test panel
+  const [testInput,    setTestInput]    = useState("");
   const [mobileTab, setMobileTab] = useState<"chat" | "tools">("chat");
   const [lastFailedMsg, setLastFailedMsg] = useState<string | null>(null);
 
@@ -482,18 +487,18 @@ function GameView({
   }
 
   async function submitDiagnosis() {
-    if (!diag.fault.trim() && !diag.component.trim()) return;
+    if (!diagFault.trim() && !diagComp.trim()) return;
     setLoading(true);
     const diagMsg: GroqMsg = {
       role: "user",
-      content: `---DIAGNOSIS---\nFault: ${diag.fault}\nComponent: ${diag.component}\nRepair: ${diag.repair}`,
+      content: `---DIAGNOSIS---\nFault: ${diagFault}\nComponent: ${diagComp}\nRepair: ${diagRepair}`,
     };
     const newHist = [...groqHist, diagMsg];
     try {
       const content = await callApi(newHist, "evaluate");
       const ev = parseEvaluation(content);
       if (ev) {
-        onResults(ev, hiddenData!, diag);
+        onResults(ev, hiddenData!, { fault: diagFault, component: diagComp, repair: diagRepair });
       } else {
         // Raw response wasn't JSON-parseable — show retry
         setLastFailedMsg("__submit__");
@@ -509,79 +514,16 @@ function GameView({
 
   const devLabel = lang === "FR" ? device.fr : device.en;
 
-  // ── Inner panels ──
-  const InfoPanel = () => (
-    <div className="space-y-4">
-      <div className="rounded-2xl border border-white/8 bg-[#0d0d1f] p-5 text-center space-y-3">
-        <div className="text-6xl">{device.emoji}</div>
-        <p className="font-bold text-white text-sm">{devLabel}</p>
-        <DiffBadge d={difficulty} lang={lang} />
-        <div className="grid grid-cols-2 gap-2 text-xs mt-2">
-          <div className="rounded-xl bg-white/5 p-2.5">
-            <p className="text-white/30">{t.game_questions}</p>
-            <p className="font-black text-white text-lg">{qCount}<span className="text-white/25">/15</span></p>
-          </div>
-          <div className="rounded-xl bg-white/5 p-2.5">
-            <p className="text-white/30">{t.game_score}</p>
-            <p className="font-black text-amber-400 text-lg">{score}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  const ToolPanel = () => (
-    <div className="space-y-3 h-full flex flex-col">
-      {/* Notes */}
-      <div className="rounded-2xl border border-white/8 bg-[#0d0d1f] p-3 space-y-2">
-        <p className="text-xs font-semibold text-white/50">{t.game_notes}</p>
-        <textarea
-          value={notes}
-          onChange={e => setNotes(e.target.value)}
-          placeholder={t.game_notes_ph}
-          rows={4}
-          className="w-full bg-white/3 border border-white/8 rounded-xl px-3 py-2 text-xs text-white/70 placeholder-white/20 resize-none focus:outline-none focus:ring-2 focus:ring-violet-500/30"
-        />
-      </div>
-
-      {/* Auto clues */}
-      {clues.length > 0 && (
-        <div className="rounded-2xl border border-white/8 bg-[#0d0d1f] p-3 space-y-1.5">
-          <p className="text-xs font-semibold text-white/50">{t.game_history}</p>
-          {clues.map((c, i) => (
-            <p key={i} className="text-[11px] text-white/35 leading-snug">{c}</p>
-          ))}
-        </div>
-      )}
-
-      {/* Diagnosis form */}
-      <div className="rounded-2xl border border-amber-700/30 bg-amber-900/10 p-3 space-y-3 flex-1">
-        <p className="text-xs font-bold text-amber-300">{t.game_diag}</p>
-        {([
-          { key: "fault" as const,     label: t.game_fault, ph: t.game_fault_ph },
-          { key: "component" as const, label: t.game_comp,  ph: t.game_comp_ph  },
-          { key: "repair" as const,    label: t.game_repair,ph: t.game_repair_ph },
-        ]).map(({ key, label, ph }) => (
-          <div key={key} className="space-y-1">
-            <label className="text-[11px] text-white/40">{label}</label>
-            <input
-              value={diag[key]}
-              onChange={e => setDiag(d => ({ ...d, [key]: e.target.value }))}
-              placeholder={ph}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
-            />
-          </div>
-        ))}
-        <button
-          onClick={submitDiagnosis}
-          disabled={loading || (!diag.fault && !diag.component)}
-          className="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 disabled:opacity-30 disabled:cursor-not-allowed text-white text-xs font-bold transition-all"
-        >
-          {t.game_submit} →
-        </button>
-      </div>
-    </div>
-  );
+  // ── Send a test measurement action into the chat ──
+  async function sendTest() {
+    const action = testInput.trim();
+    if (!action || loading) return;
+    setTestInput("");
+    const prefix = lang === "FR"
+      ? `[TEST MESURE] ${action}`
+      : `[MEASUREMENT TEST] ${action}`;
+    await sendMessage(prefix);
+  }
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] max-w-7xl mx-auto px-3 py-4 gap-4">
@@ -602,7 +544,21 @@ function GameView({
 
         {/* LEFT — Info (desktop only) */}
         <div className="hidden lg:block w-52 shrink-0 overflow-y-auto">
-          <InfoPanel />
+          <div className="rounded-2xl border border-white/8 bg-[#0d0d1f] p-5 text-center space-y-3">
+            <div className="text-6xl">{device.emoji}</div>
+            <p className="font-bold text-white text-sm">{devLabel}</p>
+            <DiffBadge d={difficulty} lang={lang} />
+            <div className="grid grid-cols-2 gap-2 text-xs mt-2">
+              <div className="rounded-xl bg-white/8 p-2.5">
+                <p className="text-white/40">{t.game_questions}</p>
+                <p className="font-black text-white text-lg">{qCount}<span className="text-white/25">/15</span></p>
+              </div>
+              <div className="rounded-xl bg-amber-900/30 border border-amber-700/25 p-2.5">
+                <p className="text-amber-300/60 text-[10px]">{t.game_score}</p>
+                <p className="font-black text-amber-400 text-lg">{score}</p>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* CENTER — Chat */}
@@ -708,11 +664,112 @@ function GameView({
         </div>
 
         {/* RIGHT — Tools */}
-        <div className={`w-72 shrink-0 overflow-y-auto ${mobileTab === "chat" ? "hidden sm:block" : "block"}`}>
-          <div className="hidden lg:block mb-3">
-            <InfoPanel />
+        <div className={`w-72 shrink-0 overflow-y-auto space-y-3 pb-2 ${mobileTab === "chat" ? "hidden sm:block" : "block"}`}>
+
+          {/* Info (mobile/tablet) */}
+          <div className="lg:hidden rounded-2xl border border-white/8 bg-[#0d0d1f] p-3 flex items-center gap-3">
+            <span className="text-3xl">{device.emoji}</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-white truncate">{devLabel}</p>
+              <div className="flex items-center gap-2 mt-0.5">
+                <DiffBadge d={difficulty} lang={lang} small />
+                <span className="text-xs text-amber-400 font-bold">{score} pts</span>
+              </div>
+            </div>
           </div>
-          <ToolPanel />
+
+          {/* 🔬 Test panel — NEW */}
+          <div className="rounded-2xl border border-cyan-700/30 bg-cyan-900/10 p-3 space-y-2">
+            <div className="flex items-center gap-1.5">
+              <span className="text-base">🔬</span>
+              <p className="text-xs font-bold text-cyan-300">
+                {lang === "FR" ? "Simuler une mesure" : "Simulate a measurement"}
+              </p>
+            </div>
+            <p className="text-[10px] text-white/35 leading-relaxed">
+              {lang === "FR"
+                ? "Décris ce que tu mesures, l'IA simule le résultat (peut être inexact selon la difficulté)"
+                : "Describe what you're measuring, AI simulates the result (may be inaccurate by difficulty)"}
+            </p>
+            <div className="flex gap-1.5">
+              <input
+                value={testInput}
+                onChange={e => setTestInput(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && sendTest()}
+                disabled={loading || !!initError}
+                placeholder={lang === "FR" ? "Ex: résistance entre R1 et GND…" : "e.g. resistance between R1 and GND…"}
+                className="flex-1 bg-white/5 border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-cyan-500/30 disabled:opacity-40"
+              />
+              <button onClick={sendTest} disabled={loading || !testInput.trim() || !!initError}
+                className="px-2.5 py-1.5 rounded-xl bg-cyan-700/40 hover:bg-cyan-600/40 border border-cyan-600/30 text-cyan-300 text-xs font-bold disabled:opacity-30 transition-all"
+              >
+                →
+              </button>
+            </div>
+          </div>
+
+          {/* Notes */}
+          <div className="rounded-2xl border border-white/8 bg-[#0d0d1f] p-3 space-y-2">
+            <p className="text-xs font-semibold text-white/50">{t.game_notes}</p>
+            <textarea
+              value={notes}
+              onChange={e => setNotes(e.target.value)}
+              placeholder={t.game_notes_ph}
+              rows={3}
+              className="w-full bg-white/5 border border-white/8 rounded-xl px-3 py-2 text-xs text-white/70 placeholder-white/20 resize-none focus:outline-none focus:ring-2 focus:ring-violet-500/30"
+            />
+          </div>
+
+          {/* Auto clues */}
+          {clues.length > 0 && (
+            <div className="rounded-2xl border border-white/8 bg-[#0d0d1f] p-3 space-y-1.5">
+              <p className="text-xs font-semibold text-white/50">{t.game_history}</p>
+              {clues.map((c, i) => (
+                <p key={i} className="text-[11px] text-white/45 leading-snug">{c}</p>
+              ))}
+            </div>
+          )}
+
+          {/* Diagnosis form — individual controlled inputs to avoid focus loss */}
+          <div className="rounded-2xl border border-amber-700/30 bg-gradient-to-b from-amber-900/20 to-orange-900/10 p-3 space-y-3">
+            <p className="text-xs font-bold text-amber-300">{t.game_diag}</p>
+
+            <div className="space-y-1">
+              <label className="text-[11px] text-white/50">{t.game_fault}</label>
+              <input
+                value={diagFault}
+                onChange={e => setDiagFault(e.target.value)}
+                placeholder={t.game_fault_ph}
+                className="w-full bg-black/30 border border-white/12 rounded-xl px-3 py-2 text-xs text-white placeholder-white/25 focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[11px] text-white/50">{t.game_comp}</label>
+              <input
+                value={diagComp}
+                onChange={e => setDiagComp(e.target.value)}
+                placeholder={t.game_comp_ph}
+                className="w-full bg-black/30 border border-white/12 rounded-xl px-3 py-2 text-xs text-white placeholder-white/25 focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[11px] text-white/50">{t.game_repair}</label>
+              <input
+                value={diagRepair}
+                onChange={e => setDiagRepair(e.target.value)}
+                placeholder={t.game_repair_ph}
+                className="w-full bg-black/30 border border-white/12 rounded-xl px-3 py-2 text-xs text-white placeholder-white/25 focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+              />
+            </div>
+
+            <button
+              onClick={submitDiagnosis}
+              disabled={loading || (!diagFault && !diagComp)}
+              className="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 disabled:opacity-30 disabled:cursor-not-allowed text-white text-xs font-bold transition-all shadow-lg shadow-amber-900/30"
+            >
+              {t.game_submit} →
+            </button>
+          </div>
         </div>
       </div>
     </div>
