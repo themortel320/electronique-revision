@@ -3,7 +3,7 @@ import {
   BookOpen, Zap, FlaskConical, Wrench, Globe,
   Target, ClipboardList, ClipboardCheck,
   BarChart2, Brain, CalendarDays, Trophy,
-  ChevronRight,
+  ChevronRight, Gamepad2,
 } from "lucide-react";
 
 // ── Data ──────────────────────────────────────────────────────────────────────
@@ -90,6 +90,15 @@ const SECTIONS = [
         tag: "Conditions réelles",
         gradient: "from-red-600 to-orange-600",
         subs: ["⏱️ Chronométré", "🚫 Sans aide", "📊 Bilan final"],
+      },
+      {
+        href: "/jeux",
+        icon: <Gamepad2 size={20} className="text-amber-400" />,
+        label: "Jeux & Codes couleurs",
+        desc: "Apprends le code couleur des résistances en jouant",
+        tag: "Nouveau 🎨",
+        gradient: "from-amber-500 to-yellow-600",
+        subs: ["🔍 Lire les bandes", "🖊️ Encoder une valeur", "🔥 Mode expert"],
       },
     ],
   },
