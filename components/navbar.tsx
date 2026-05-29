@@ -38,7 +38,8 @@ const CATEGORIES = [
       { href: "/exercises", label: "Exercices",         desc: "Calculs guidés par IA",              icon: <ClipboardList size={15} className="text-emerald-400" /> },
       { href: "/quiz",      label: "Quiz",              desc: "10 questions, classement mondial",    icon: <Target size={15} className="text-pink-400" /> },
       { href: "/exam",      label: "Mode Examen",       desc: "Chrono, sans aide, bilan détaillé",  icon: <ClipboardCheck size={15} className="text-red-400" /> },
-      { href: "/jeux",      label: "🎨 Jeux & Couleurs", desc: "Code couleur des résistances",       icon: <Gamepad2 size={15} className="text-amber-400" /> },
+      { href: "/jeux",       label: "🎨 Code couleur",    desc: "Jeu : résistances & bandes couleur",  icon: <Gamepad2 size={15} className="text-amber-400" /> },
+      { href: "/jeux/diagnostic", label: "🔌 ElectroDebug", desc: "Diagnostic IA — répare une panne",    icon: <Gamepad2 size={15} className="text-orange-400" /> },
     ] as NavItem[],
   },
   {
