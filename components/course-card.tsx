@@ -66,6 +66,8 @@ export function CourseCard({ module, onAskTutor }: Props) {
   const [tab, setTab] = useState<Tab>("cours");
   const [activeFormula, setActiveFormula] = useState<number | null>(null);
   const [showTutor, setShowTutor] = useState(false);
+  const [stepMode, setStepMode] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
 
   const accent = accentByModule[module.id] ?? DEFAULT_ACCENT;
   const icon = iconsByModule[module.id] ?? "📘";
@@ -175,23 +177,101 @@ export function CourseCard({ module, onAskTutor }: Props) {
                 {/* Step-by-step explanation */}
                 {module.lesson?.steps && module.lesson.steps.length > 0 && (
                   <div>
-                    <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-white/30">
-                      Explication pas à pas
-                    </p>
-                    <ol className="space-y-3">
-                      {module.lesson.steps.map((step, i) => (
-                        <li key={i} className="flex items-start gap-3 animate-fade-up"
-                          style={{ animationDelay: `${i * 0.05}s` }}>
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-white/30">
+                        Explication pas à pas
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => { setStepMode((v) => !v); setCurrentStep(0); }}
+                        className={`text-xs px-2.5 py-1 rounded-lg border transition-all ${
+                          stepMode
+                            ? `${accent.border} ${accent.text} bg-white/5`
+                            : "border-white/10 text-white/30 hover:text-white/60"
+                        }`}
+                      >
+                        {stepMode ? "Tout voir" : "Pas à pas ▶"}
+                      </button>
+                    </div>
+
+                    {stepMode ? (
+                      <div className="space-y-3">
+                        <div
+                          key={currentStep}
+                          className={`flex items-start gap-3 rounded-xl border ${accent.border} bg-white/3 p-4 animate-fade-up`}
+                        >
                           <span
-                            className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold
+                            className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-bold
                               bg-gradient-to-br ${accent.bg} border ${accent.border} ${accent.text}`}
                           >
-                            {i + 1}
+                            {currentStep + 1}
                           </span>
-                          <p className="text-sm text-white/75 leading-relaxed pt-0.5">{step}</p>
-                        </li>
-                      ))}
-                    </ol>
+                          <p className="text-sm text-white/80 leading-relaxed pt-0.5">
+                            {module.lesson.steps[currentStep]}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="flex gap-1 flex-1">
+                            {module.lesson.steps.map((_, i) => (
+                              <button
+                                key={i}
+                                type="button"
+                                onClick={() => setCurrentStep(i)}
+                                className={`h-1.5 flex-1 rounded-full transition-all ${
+                                  i === currentStep
+                                    ? `${accent.text} bg-current`
+                                    : i < currentStep
+                                    ? "bg-white/30"
+                                    : "bg-white/10"
+                                }`}
+                              />
+                            ))}
+                          </div>
+                          <div className="flex gap-1 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => setCurrentStep((s) => Math.max(0, s - 1))}
+                              disabled={currentStep === 0}
+                              className="px-3 py-1.5 text-xs rounded-lg border border-white/10 text-white/40 hover:text-white hover:border-white/20 disabled:opacity-20 transition-all"
+                            >
+                              ← Préc
+                            </button>
+                            {currentStep < module.lesson.steps.length - 1 ? (
+                              <button
+                                type="button"
+                                onClick={() => setCurrentStep((s) => s + 1)}
+                                className={`px-3 py-1.5 text-xs rounded-lg bg-gradient-to-r ${accent.bg} border ${accent.border} ${accent.text} hover:brightness-125 transition-all`}
+                              >
+                                Suiv →
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => setStepMode(false)}
+                                className={`px-3 py-1.5 text-xs rounded-lg bg-gradient-to-r ${accent.bg} border ${accent.border} ${accent.text} hover:brightness-125 transition-all`}
+                              >
+                                ✓ Fini
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <ol className="space-y-3">
+                        {module.lesson.steps.map((step, i) => (
+                          <li key={i} className="flex items-start gap-3 animate-fade-up"
+                            style={{ animationDelay: `${i * 0.05}s` }}>
+                            <span
+                              className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold
+                                bg-gradient-to-br ${accent.bg} border ${accent.border} ${accent.text}`}
+                            >
+                              {i + 1}
+                            </span>
+                            <p className="text-sm text-white/75 leading-relaxed pt-0.5">{step}</p>
+                          </li>
+                        ))}
+                      </ol>
+                    )}
                   </div>
                 )}
 

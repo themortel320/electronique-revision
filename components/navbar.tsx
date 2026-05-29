@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Moon, Sun, Trophy, Zap, LayoutDashboard,
-  ClipboardCheck, Menu, X,
+  ClipboardCheck, Brain, Menu, X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getPseudo } from "@/lib/user";
@@ -19,6 +19,7 @@ const links = [
   { href: "/english",     label: "🇬🇧 English" },
   { href: "/exercises",   label: "Exercices" },
   { href: "/quiz",        label: "Quiz" },
+  { href: "/spaced",      label: "🧠 SRS",     icon: <Brain size={13} /> },
   { href: "/dashboard",   label: "Dashboard", icon: <LayoutDashboard size={13} /> },
   { href: "/exam",        label: "Examen",    icon: <ClipboardCheck size={13} /> },
 ];

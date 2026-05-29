@@ -1,0 +1,30 @@
+{
+  "name": "ElectroLab — Révision Électronique",
+  "short_name": "ElectroLab",
+  "description": "Plateforme interactive pour maîtriser les bases de l'électronique.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#070d1f",
+  "theme_color": "#7c3aed",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "utilities"],
+  "shortcuts": [
+    { "name": "Quiz", "url": "/quiz", "description": "Lancer un quiz" },
+    { "name": "Cours", "url": "/modules", "description": "Voir les cours" },
+    { "name": "Examen", "url": "/exam", "description": "Mode examen chronométré" }
+  ]
+}

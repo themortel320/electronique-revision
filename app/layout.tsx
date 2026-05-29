@@ -7,6 +7,12 @@ import { StarField } from "@/components/star-field";
 export const metadata: Metadata = {
   title: "ElectroLab — Révision Électronique",
   description: "Plateforme interactive pour maîtriser les bases de l'électronique.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "ElectroLab",
+  },
 };
 
 export const viewport: Viewport = {

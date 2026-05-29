@@ -2,8 +2,9 @@
 
 import { submitScore } from "@/lib/leaderboard";
 import { getPseudo, setPseudo, checkPseudoAvailable, reservePseudo, getUserToken } from "@/lib/user";
-import { CheckCircle2, XCircle, Trophy, RotateCcw, ChevronRight, Loader2, User, BookOpen, ChevronDown, Pencil } from "lucide-react";
-import { useState, useMemo, useEffect } from "react";
+import { saveQuizSession } from "@/lib/quiz-history";
+import { CheckCircle2, XCircle, Trophy, RotateCcw, ChevronRight, Loader2, User, BookOpen, ChevronDown, Pencil, Share2, AlertCircle } from "lucide-react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { QUIZ_CATEGORIES, QuizCategory, QuizQuestion } from "@/lib/quiz-questions";
 
 type Phase = "setup" | "select" | "answering" | "feedback" | "done";
@@ -27,6 +28,8 @@ export function Quiz() {
   const [submitted, setSubmitted] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [changingPseudo, setChangingPseudo] = useState(false);
+  const [shared, setShared] = useState(false);
+  const wrongLog = useRef<{ q: string; chosen: string; correct: string; explanation: string }[]>([]);
 
   // Load existing pseudo on mount
   useEffect(() => {
@@ -96,6 +99,8 @@ export function Quiz() {
     setSelected(null);
     setSubmitted(false);
     setSheetOpen(false);
+    setShared(false);
+    wrongLog.current = [];
     setAnimKey((k) => k + 1);
     setPhase("answering");
   }
@@ -104,7 +109,17 @@ export function Quiz() {
     if (phase !== "answering") return;
     setSelected(i);
     setPhase("feedback");
-    if (i === question.answer) setScore((s) => s + 1);
+    const correct = i === question.answer;
+    if (correct) {
+      setScore((s) => s + 1);
+    } else {
+      wrongLog.current.push({
+        q: question.q,
+        chosen: question.options[i],
+        correct: question.options[question.answer],
+        explanation: question.explanation,
+      });
+    }
   }
 
   async function next() {
@@ -120,6 +135,17 @@ export function Quiz() {
           total: questions.length,
           category: category?.id ?? "electronics",
           date: new Date().toISOString(),
+        });
+        // Save to local history
+        saveQuizSession({
+          id: crypto.randomUUID(),
+          category: category?.id ?? "electronics",
+          categoryLabel: category?.label ?? "Quiz",
+          date: new Date().toISOString(),
+          score: pct,
+          correct: finalScore,
+          total: questions.length,
+          wrongQuestions: wrongLog.current,
         });
       }
       setScore(finalScore);
@@ -260,6 +286,20 @@ export function Quiz() {
   // ── Phase: done ────────────────────────────────────────────────────────────
   if (phase === "done") {
     const pct = Math.round((score / questions.length) * 100);
+
+    async function shareScore() {
+      const text = `🎯 ElectroLab — ${category?.label ?? "Quiz"}\n${score}/${questions.length} (${pct}%) · ${grade.label}\nRévise avec moi → electrolab.vercel.app`;
+      try {
+        if (navigator.share) {
+          await navigator.share({ title: "Mon score ElectroLab", text });
+        } else {
+          await navigator.clipboard.writeText(text);
+          setShared(true);
+          setTimeout(() => setShared(false), 2000);
+        }
+      } catch { /* user cancelled */ }
+    }
+
     return (
       <div className="rounded-2xl border border-white/10 bg-[#0d0d1f] p-8 flex flex-col items-center gap-6 text-center">
         <div className={`w-20 h-20 rounded-full bg-gradient-to-br ${category?.color} flex items-center justify-center text-4xl shadow-lg`}>
@@ -285,7 +325,28 @@ export function Quiz() {
           Score de {pct} pts enregistré pour <span className="text-violet-300 font-medium">{pseudoState}</span>
         </div>
 
-        <div className="flex gap-3 flex-wrap justify-center">
+        {/* Wrong questions review */}
+        {wrongLog.current.length > 0 && (
+          <div className="w-full text-left space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-red-400/70 flex items-center gap-1.5">
+              <AlertCircle size={11} /> À revoir ({wrongLog.current.length} erreur{wrongLog.current.length > 1 ? "s" : ""})
+            </p>
+            <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+              {wrongLog.current.map((w, i) => (
+                <div key={i} className="rounded-xl border border-red-700/20 bg-red-900/10 px-4 py-3 text-sm">
+                  <p className="text-white/70 font-medium mb-1.5">{w.q}</p>
+                  <div className="flex flex-col gap-0.5 text-xs">
+                    <span className="text-red-400">✗ Tu as dit : {w.chosen}</span>
+                    <span className="text-emerald-400">✓ Réponse : {w.correct}</span>
+                    <span className="text-white/40 mt-1">{w.explanation}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="flex gap-3 flex-wrap justify-center w-full">
           <button
             onClick={() => startQuiz(category!)}
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white text-sm font-medium transition-colors"
@@ -298,6 +359,13 @@ export function Quiz() {
             className={`px-5 py-2.5 rounded-xl bg-gradient-to-r ${category?.color} text-white text-sm font-medium transition-all hover:opacity-90`}
           >
             Autre catégorie
+          </button>
+          <button
+            onClick={shareScore}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-white/10 hover:border-white/20 text-white/60 hover:text-white text-sm font-medium transition-colors"
+          >
+            <Share2 size={14} />
+            {shared ? "Copié !" : "Partager"}
           </button>
         </div>
       </div>
@@ -388,13 +456,19 @@ export function Quiz() {
       </div>
 
       {phase === "feedback" && (
-        <div className={`flex items-start gap-3 rounded-xl p-4 text-sm ${
+        <div className={`rounded-xl p-4 text-sm space-y-2 ${
           isCorrect
-            ? "bg-emerald-900/20 border border-emerald-700/30 text-emerald-300"
-            : "bg-red-900/10 border border-red-700/20 text-red-300"
+            ? "bg-emerald-900/20 border border-emerald-700/30"
+            : "bg-red-900/10 border border-red-700/20"
         }`}>
-          {isCorrect ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" /> : <XCircle className="mt-0.5 h-4 w-4 shrink-0" />}
-          <span>{question?.explanation}</span>
+          <div className={`flex items-center gap-2 font-semibold ${isCorrect ? "text-emerald-300" : "text-red-300"}`}>
+            {isCorrect ? <CheckCircle2 className="h-4 w-4 shrink-0" /> : <XCircle className="h-4 w-4 shrink-0" />}
+            {isCorrect ? "Bonne réponse !" : `Raté — la bonne réponse était : "${question.options[question.answer]}"`}
+          </div>
+          {!isCorrect && selected !== null && (
+            <p className="text-white/40 text-xs">Tu as choisi : &quot;{question.options[selected]}&quot;</p>
+          )}
+          <p className="text-white/65 leading-relaxed">{question?.explanation}</p>
         </div>
       )}
 

@@ -15,7 +15,9 @@ import {
 import { Radar, Bar } from "react-chartjs-2";
 import { useEffect, useState } from "react";
 import { loadProgress } from "@/lib/progress";
-import { Trophy, Target, Flame, Clock, TrendingUp, RotateCcw } from "lucide-react";
+import { loadQuizHistory, QuizSession } from "@/lib/quiz-history";
+import { Trophy, Target, Flame, Clock, TrendingUp, RotateCcw, ChevronRight, AlertCircle } from "lucide-react";
+import Link from "next/link";
 
 ChartJS.register(
   RadialLinearScale,
@@ -57,12 +59,14 @@ function loadStreakFromStorage(): number {
 export function ProgressDashboard() {
   const [stats, setStats] = useState<ReturnType<typeof loadProgress> | null>(null);
   const [streak, setStreak] = useState(0);
+  const [quizHistory, setQuizHistory] = useState<QuizSession[]>([]);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
     setStats(loadProgress());
     setStreak(loadStreakFromStorage());
+    setQuizHistory(loadQuizHistory());
   }, []);
 
   if (!mounted || !stats) return null;
@@ -254,7 +258,7 @@ export function ProgressDashboard() {
       {results.length > 0 && (
         <div className="rounded-2xl border border-white/10 bg-[#0d0d1f] p-5">
           <p className="text-white/60 text-sm font-medium mb-3 flex items-center gap-2">
-            <Clock size={14} /> Activité récente
+            <Clock size={14} /> Activité récente (exercices)
           </p>
           <div className="space-y-2 max-h-[200px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/10">
             {[...results].reverse().slice(0, 12).map((r, i) => (
@@ -271,6 +275,68 @@ export function ProgressDashboard() {
           </div>
         </div>
       )}
+
+      {/* Quiz history */}
+      {quizHistory.length > 0 && (
+        <div className="rounded-2xl border border-white/10 bg-[#0d0d1f] p-5">
+          <p className="text-white/60 text-sm font-medium mb-4 flex items-center gap-2">
+            <Trophy size={14} className="text-amber-400" /> Historique des quiz ({quizHistory.length})
+          </p>
+          <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+            {quizHistory.map((s) => (
+              <div key={s.id} className="rounded-xl border border-white/8 bg-white/3 px-4 py-3 text-sm">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-medium text-white/80">{s.categoryLabel}</span>
+                  <span className={`font-bold text-sm ${s.score >= 80 ? "text-emerald-400" : s.score >= 50 ? "text-amber-400" : "text-red-400"}`}>
+                    {s.score}%
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-xs text-white/30">
+                  <span>{s.correct}/{s.total} correctes</span>
+                  <span>{new Date(s.date).toLocaleDateString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</span>
+                </div>
+                {s.wrongQuestions.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    {s.wrongQuestions.slice(0, 2).map((w, i) => (
+                      <div key={i} className="flex items-start gap-1.5 text-xs text-white/30">
+                        <AlertCircle size={10} className="mt-0.5 shrink-0 text-red-400/60" />
+                        <span className="line-clamp-1">{w.q} → {w.correct}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Suggestions */}
+      <div className="rounded-2xl border border-indigo-700/20 bg-indigo-950/20 p-5 space-y-3">
+        <p className="text-indigo-300 text-sm font-semibold flex items-center gap-2">
+          <TrendingUp size={14} /> Améliore ta progression
+        </p>
+        <div className="grid sm:grid-cols-3 gap-3">
+          {[
+            { label: "Révision espacée", desc: "Mémorise durablement avec l'algo SM-2", href: "/spaced", emoji: "🧠" },
+            { label: "Mode examen", desc: "Simule les conditions d'épreuve", href: "/exam", emoji: "📝" },
+            { label: "Quiz", desc: "Teste tes connaissances en 10 questions", href: "/quiz", emoji: "🎯" },
+          ].map(({ label, desc, href, emoji }) => (
+            <Link
+              key={href}
+              href={href}
+              className="flex items-start gap-3 rounded-xl border border-white/8 bg-white/3 hover:bg-white/5 hover:border-white/15 p-4 transition-all"
+            >
+              <span className="text-2xl">{emoji}</span>
+              <div>
+                <p className="text-sm font-medium text-white/80">{label}</p>
+                <p className="text-xs text-white/40 mt-0.5">{desc}</p>
+              </div>
+              <ChevronRight size={14} className="ml-auto mt-1 text-white/20 shrink-0" />
+            </Link>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
